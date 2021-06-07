@@ -31,8 +31,6 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/upload', upload);
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
 
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, '/../uploads')));

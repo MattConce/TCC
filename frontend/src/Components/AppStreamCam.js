@@ -148,6 +148,7 @@ function AppStreamCam() {
   const handleButtonStart = () => {
     setGameStarted(true);
     handleFullScreen();
+    document.getElementById('videoCaptureCanvas-id').style.zIndex = '1';
   };
 
   const loadFacemesh = async () => {
@@ -203,13 +204,13 @@ function AppStreamCam() {
   const reportGameChange = () => {
     setGameFinished(true);
     screenFull.exit();
-    window.location.reload();
   };
 
   const startTracking = () => {
     if (!trackingStatus) {
       setTrackingStatus(true);
       runFacemesh();
+      document.getElementById('videoCaptureCanvas-id').style.zIndex = '6';
       document.getElementById('trackingButton').innerHTML = 'Stop tracking';
     } else {
       setTrackingStatus(false);

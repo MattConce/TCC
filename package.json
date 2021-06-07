@@ -5,7 +5,6 @@
   "main": "server.js",
   "scripts": {
     "start": "node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec babel-node backend/server.js",
     "build": "rm -rf dist && babel backend -d dist",
     "heroku-postbuild": "npm run build && cd frontend && npm install && npm run build"

@@ -54,7 +54,7 @@ function AppStreamCam() {
     // Load the facemesh model
     const net = netFacemesh;
     // Run the model
-    const face = await detect(net);
+    const face = await detect(net, false);
 
     let leftEye = [];
     leftEye.push(face[0].annotations.leftEyeLower0);
@@ -84,6 +84,8 @@ function AppStreamCam() {
     let width = leftMaxX - leftMinX;
     let height = leftMaxY - leftMinY;
 
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
     ctx.drawImage(
       video,
       leftMinX,
@@ -97,6 +99,8 @@ function AppStreamCam() {
     );
 
     const leftEyeImg = canvas.toDataURL('image/png');
+
+    ctx.putImageData(imgData, 0, 0);
 
     let rightEye = [];
     rightEye.push(face[0].annotations.rightEyeLower0);
@@ -128,6 +132,8 @@ function AppStreamCam() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
     ctx.drawImage(
       video,
       rightMinX,
@@ -142,13 +148,15 @@ function AppStreamCam() {
 
     const rightEyeImg = canvas.toDataURL('image/png');
 
+    ctx.putImageData(imgData, 0, 0);
+
     return { leftEyeImg: leftEyeImg, rightEyeImg: rightEyeImg };
   };
 
   const handleButtonStart = () => {
     setGameStarted(true);
+    setGameFinished(false);
     handleFullScreen();
-    document.getElementById('videoCaptureCanvas-id').style.zIndex = '1';
   };
 
   const loadFacemesh = async () => {
@@ -158,7 +166,7 @@ function AppStreamCam() {
     setNetFacemesh(net);
   };
 
-  const detect = async (net) => {
+  const detect = async (net, draw = true) => {
     if (
       typeof webcamRef.current !== 'undefined' &&
       webcamRef.current !== null &&
@@ -182,7 +190,7 @@ function AppStreamCam() {
       // console.log(face);
 
       // Get canvas context
-      if (canvasRef.current) {
+      if (canvasRef.current && draw) {
         const ctx = canvasRef.current.getContext('2d');
         requestAnimationFrame(() => {
           drawMesh(face, ctx);
@@ -210,7 +218,6 @@ function AppStreamCam() {
     if (!trackingStatus) {
       setTrackingStatus(true);
       runFacemesh();
-      document.getElementById('videoCaptureCanvas-id').style.zIndex = '6';
       document.getElementById('trackingButton').innerHTML = 'Stop tracking';
     } else {
       setTrackingStatus(false);
@@ -224,7 +231,6 @@ function AppStreamCam() {
   useEffect(() => {
     // Load model at the begin
     if (!netFacemesh) loadFacemesh();
-    console.log(gameFinished);
   }, [gameFinished]);
 
   return (
@@ -255,7 +261,7 @@ function AppStreamCam() {
             left: 0,
             right: 0,
             textAlign: 'center',
-            zindex: 5,
+            zindex: 100,
             width: 640,
             height: 480,
           }}

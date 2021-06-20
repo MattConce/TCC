@@ -235,36 +235,51 @@ function AppStreamCam() {
 
   return (
     <div className={gameStarted ? 'container-full' : 'container'}>
+      <Webcam
+        ref={webcamRef}
+        style={{
+          position: 'absolute',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          zindex: 5,
+          width: 640,
+          height: 480,
+        }}
+      />
       <FullScreen handle={screenFull} onChange={reportChange}>
-        <Webcam
-          ref={webcamRef}
-          style={{
-            position: 'absolute',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            left: 0,
-            right: 0,
-            textAlign: 'center',
-            zindex: 5,
-            width: 640,
-            height: 480,
-          }}
-        />
         <canvas
           id="videoCaptureCanvas-id"
           key="videoCaptureCanvas"
           ref={canvasRef}
-          style={{
-            position: 'absolute',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            left: 0,
-            right: 0,
-            textAlign: 'center',
-            zindex: 100,
-            width: 640,
-            height: 480,
-          }}
+          style={
+            gameStarted && !gameFinished
+              ? {
+                  background: '#FEF5E7',
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  textAlign: 'center',
+                  zindex: 100,
+                  width: '100%',
+                  height: '100vh',
+                }
+              : {
+                  background: 'transparent',
+                  position: 'absolute',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  left: 0,
+                  right: 0,
+                  textAlign: 'center',
+                  zindex: 5,
+                  width: 640,
+                  height: 480,
+                }
+          }
         />
         {gameStarted && !gameFinished ? (
           <Game
@@ -272,27 +287,26 @@ function AppStreamCam() {
             onChange={reportGameChange}
           ></Game>
         ) : (
-          <div></div>
+          <div className="container-button">
+            <button
+              disabled={!netFacemesh}
+              id="trackingButton"
+              onClick={startTracking}
+              className="button alt"
+            >
+              {' '}
+              Start Tracking
+            </button>
+            <button
+              disabled={!netFacemesh}
+              className="button alt"
+              onClick={handleButtonStart}
+            >
+              {' '}
+              Start Game
+            </button>
+          </div>
         )}
-        <div className="container-button">
-          <button
-            disabled={!netFacemesh}
-            id="trackingButton"
-            onClick={startTracking}
-            className="button alt"
-          >
-            {' '}
-            Start Tracking
-          </button>
-          <button
-            disabled={!netFacemesh}
-            className="button alt"
-            onClick={handleButtonStart}
-          >
-            {' '}
-            Start Game
-          </button>
-        </div>
       </FullScreen>
     </div>
   );

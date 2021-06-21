@@ -288,15 +288,15 @@ function AppStreamCam() {
           ></Game>
         ) : (
           <div className="container-button">
-            <button
-              disabled={!netFacemesh}
-              id="trackingButton"
-              onClick={startTracking}
-              className="button alt"
-            >
-              {' '}
-              Start Tracking
-            </button>
+            {/* <button */}
+            {/*   disabled={!netFacemesh} */}
+            {/*   id="trackingButton" */}
+            {/*   onClick={startTracking} */}
+            {/*   className="button alt" */}
+            {/* > */}
+            {/*   {' '} */}
+            {/*   Start Tracking */}
+            {/* </button> */}
             <button
               disabled={!netFacemesh}
               className="button alt"

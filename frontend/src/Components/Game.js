@@ -47,7 +47,6 @@ function Game(props) {
       const offsetY = canvas.height - rows * resolution;
 
       setMaxScore(rows * cols - 1);
-      console.log(`number: ${rows * cols}`);
 
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
@@ -365,26 +364,26 @@ function Game(props) {
   }, [ready]);
 
   return (
-    <div id="gameMain" className="container-full">
+    <div id="gameMain" className="container-full back">
       {!ready ? (
-        <div className="modal-content">
-          <h1>Guarde a bola na caixa</h1>
+        <div className="modal-content shadow">
+          <h1 className="Mono">Guarde a bola na caixa</h1>
           <img
             src="/tutorial.png"
             alt="ball and box"
             width="500"
             height="400"
           />
-          <button className="button-alt" onClick={handleInitialDialog}>
+          <button className="button-alt-2" onClick={handleInitialDialog}>
             Começar
           </button>
         </div>
       ) : gameFinished ? (
-        <div className="modal-content">
-          <h1>
+        <div className="modal-content shadow">
+          <h1 className="Mono">
             Pontuação: <span className="score">{score}</span> / {maxScore}
           </h1>
-          <button className="button-alt" onClick={handleInitialDialog}>
+          <button className="button-alt-2" onClick={handleInitialDialog}>
             Voltar
           </button>
         </div>
@@ -393,11 +392,13 @@ function Game(props) {
           id="gameCanvas-id"
           key="gameCanvas"
           ref={canvasRef}
-          width="854"
-          height="480"
           style={{
+            background: '#FEF5E7',
             position: 'absolute',
+            textAlign: 'center',
             zIndex: 12,
+            left: 0,
+            right: 0,
           }}
         ></canvas>
       )}

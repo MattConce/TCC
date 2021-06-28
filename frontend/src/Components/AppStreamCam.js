@@ -21,7 +21,7 @@ function AppStreamCam() {
 
   const getCol = (matrix, col) => {
     var column = [];
-    for (var i = 0; i < matrix.length; i++) {
+    for (let i = 0; i < matrix.length; i++) {
       column.push(matrix[i][col]);
     }
     return column;
@@ -244,43 +244,42 @@ function AppStreamCam() {
           left: 0,
           right: 0,
           textAlign: 'center',
-          zindex: 5,
+          zIndex: 5,
           width: 640,
           height: 480,
         }}
       />
+      <canvas
+        id="videoCaptureCanvas-id"
+        key="videoCaptureCanvas"
+        ref={canvasRef}
+        style={
+          gameStarted && !gameFinished
+            ? {
+                background: 'transparent',
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                textAlign: 'center',
+                zIndex: 1,
+                width: 640,
+                height: 480,
+              }
+            : {
+                background: 'transparent',
+                position: 'absolute',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                left: 0,
+                right: 0,
+                textAlign: 'center',
+                zIndex: 5,
+                width: 640,
+                height: 480,
+              }
+        }
+      />
       <FullScreen handle={screenFull} onChange={reportChange}>
-        <canvas
-          id="videoCaptureCanvas-id"
-          key="videoCaptureCanvas"
-          ref={canvasRef}
-          style={
-            gameStarted && !gameFinished
-              ? {
-                  background: '#FEF5E7',
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  textAlign: 'center',
-                  zindex: 100,
-                  width: '100%',
-                  height: '100vh',
-                }
-              : {
-                  background: 'transparent',
-                  position: 'absolute',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  left: 0,
-                  right: 0,
-                  textAlign: 'center',
-                  zindex: 5,
-                  width: 640,
-                  height: 480,
-                }
-          }
-        />
         {gameStarted && !gameFinished ? (
           <Game
             getCurrentFrame={getCurrentFrameFromVideo}

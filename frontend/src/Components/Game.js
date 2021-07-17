@@ -40,7 +40,7 @@ function Game(props) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = '1';
       // Canvas dimensions
-      const resolution = 200;
+      const resolution = 400;
       const rows = Math.floor(canvas.height / resolution);
       const cols = Math.floor(canvas.width / resolution);
       const offsetX = canvas.width - cols * resolution;
@@ -66,103 +66,15 @@ function Game(props) {
         (2 * resolution) / 5,
         (2 * resolution) / 5
       );
-      cur++;
 
+      cur++;
       let init = Math.floor(Math.random() * (positions.length - 1));
       ball = new Ball(positions[init][0], positions[init][1], resolution / 10);
-
       box.draw(ctx);
       ball.draw(ctx);
 
-      canvas.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        if (!insideCanvas(e.offsetX, e.offsetY)) return;
-        mouseX = e.offsetX;
-        mouseY = e.offsetY;
-        if (ball.isInside(mouseX, mouseY)) {
-          isDrawing = true;
-        }
-      });
-
-      canvas.addEventListener('mousemove', (e) => {
-        e.preventDefault();
-        if (!onTarget && isDrawing && insideCanvas(e.offsetX, e.offsetY)) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          moveX = parseFloat(e.offsetX);
-          moveY = parseFloat(e.offsetY);
-
-          ball.pos = [moveX, moveY];
-          if (circleInsideRect(ball, box, ctx)) {
-            box.draw(ctx, true);
-            ball.pos = [box.cx, box.cy];
-            onTarget = true;
-          } else {
-            box.draw(ctx);
-          }
-          ball.draw(ctx, true);
-        }
-      });
-
-      canvas.addEventListener('mouseup', (e) => {
-        if (insideCanvas(e.offsetX, e.offsetY)) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          isDrawing = false;
-          if (circleInsideRect(ball, box, ctx)) box.draw(ctx, true);
-          else box.draw(ctx);
-          ball.draw(ctx, false);
-          if (onTarget) {
-            clearInterval(intervalId);
-            if (cur >= positions.length) {
-              setScore(fscore);
-              setGameFinished(true);
-              for (let data of buffer) {
-                const { num, frame, coord } = data;
-                // upload all images and save the data
-                uploadFileHandler(frame.leftEyeImg, `leftEyeImg-${num}`)
-                  .then((response) => {
-                    return response;
-                  })
-                  .then((response) => {
-                    const pathLeftImg = response;
-                    uploadFileHandler(
-                      frame.rightEyeImg,
-                      `rightEyeImg-${num}`
-                    ).then((response) => {
-                      const pathRightImg = response;
-                      // Save data to the database
-                      saveTrainingData({
-                        coordinates: { x: coord.x, y: coord.y },
-                        pathLeftImg,
-                        pathRightImg,
-                      });
-                    });
-                  });
-              }
-            } else {
-              props.getCurrentFrame().then((response) => {
-                const coord = { x: ball.pos[0], y: ball.pos[1] };
-                const data = { num: cur, frame: response, coord: coord };
-                buffer.push(data);
-              });
-              setTimeout(() => {
-                let x = positions[cur][0];
-                let y = positions[cur][1];
-                cur++;
-                box = new Box(x, y, box.w - 1, box.h - 1);
-                ball.rad -= 0.15;
-                fscore++;
-                onTarget = false;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                box.draw(ctx);
-                ball.draw(ctx);
-                requestAnimationFrame(gameStart);
-              }, 100);
-            }
-          }
-        }
-      });
+      if (ready) gameStart();
     }
-    if (ready) gameStart();
   };
 
   const gameStart = () => {
@@ -171,28 +83,28 @@ function Game(props) {
         setScore(fscore);
         clearInterval(intervalId);
         setGameFinished(true);
-        for (let data of buffer) {
-          const { num, frame, coord } = data;
-          // upload all images and save the data
-          uploadFileHandler(frame.leftEyeImg, `leftEyeImg-${num}`)
-            .then((response) => {
-              return response;
-            })
-            .then((response) => {
-              const pathLeftImg = response;
-              uploadFileHandler(frame.rightEyeImg, `rightEyeImg-${num}`).then(
-                (response) => {
-                  const pathRightImg = response;
-                  // Save data to the database
-                  saveTrainingData({
-                    coordinates: { x: coord.x, y: coord.y },
-                    pathLeftImg,
-                    pathRightImg,
-                  });
-                }
-              );
-            });
-        }
+        // for (let data of buffer) {
+        //   const { num, frame, coord } = data;
+        //   // upload all images and save the data
+        //   uploadFileHandler(frame.leftEyeImg, `leftEyeImg-${num}`)
+        //     .then((response) => {
+        //       return response;
+        //     })
+        //     .then((response) => {
+        //       const pathLeftImg = response;
+        //       uploadFileHandler(frame.rightEyeImg, `rightEyeImg-${num}`).then(
+        //         (response) => {
+        //           const pathRightImg = response;
+        //           // Save data to the database
+        //           saveTrainingData({
+        //             coordinates: { x: coord.x, y: coord.y },
+        //             pathLeftImg,
+        //             pathRightImg,
+        //           });
+        //         }
+        //       );
+        //     });
+        // }
       } else if (first) {
         first = false;
       } else if (!onTarget && canvasRef.current) {
@@ -212,6 +124,7 @@ function Game(props) {
 
   const insideCanvas = (x, y) => {
     let canvas = canvasRef.current;
+    if (!canvas) return;
     return x >= 0 && x < canvas.width && y >= 0 && y < canvas.height;
   };
 
@@ -279,7 +192,7 @@ function Game(props) {
     }
   }
 
-  const circleInsideRect = (circle, box, ctx) => {
+  const circleInsideRect = (circle, box) => {
     let leftPoint = [circle.pos[0] - circle.rad, circle.pos[1]];
     let rightPoint = [circle.pos[0] + circle.rad, circle.pos[1]];
     let topPoint = [circle.pos[0], circle.pos[1] - circle.rad];
@@ -355,11 +268,116 @@ function Game(props) {
     }
   };
 
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    if (!insideCanvas(e.offsetX, e.offsetY)) return;
+    mouseX = e.offsetX;
+    mouseY = e.offsetY;
+    if (ball.isInside(mouseX, mouseY)) {
+      isDrawing = true;
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    e.preventDefault();
+    let canvas = canvasRef.current;
+    if (!canvas) return;
+    let ctx = canvas.getContext('2d');
+    if (!onTarget && isDrawing && insideCanvas(e.offsetX, e.offsetY)) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      moveX = parseFloat(e.offsetX);
+      moveY = parseFloat(e.offsetY);
+
+      ball.pos = [moveX, moveY];
+      if (circleInsideRect(ball, box, ctx)) {
+        box.draw(ctx, true);
+        ball.pos = [box.cx, box.cy];
+        onTarget = true;
+      } else {
+        box.draw(ctx);
+      }
+      ball.draw(ctx, true);
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    let canvas = canvasRef.current;
+    if (!canvas) return;
+    let ctx = canvas.getContext('2d');
+    if (insideCanvas(e.offsetX, e.offsetY)) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      isDrawing = false;
+      if (circleInsideRect(ball, box, ctx)) box.draw(ctx, true);
+      else box.draw(ctx);
+      ball.draw(ctx, false);
+      if (onTarget) {
+        console.log('time: ', props.videoRef.currentTime);
+        clearInterval(intervalId);
+        if (cur >= positions.length) {
+          setScore(fscore);
+          setGameFinished(true);
+          // for (let data of buffer) {
+          //   const { num, frame, coord } = data;
+
+          //   upload all images and save the data
+          //   uploadFileHandler(frame.leftEyeImg, `leftEyeImg-${num}`)
+          //     .then((response) => {
+          //       return response;
+          //     })
+          //     .then((response) => {
+          //       const pathLeftImg = response;
+          //       uploadFileHandler(
+          //         frame.rightEyeImg,
+          //         `rightEyeImg-${num}`
+          //       ).then((response) => {
+          //         const pathRightImg = response;
+          //         // Save data to the database
+          //         saveTrainingData({
+          //           coordinates: { x: coord.x, y: coord.y },
+          //           pathLeftImg,
+          //           pathRightImg,
+          //         });
+          //       });
+          //     });
+          // }
+        } else {
+          // props.getCurrentFrame().then((response) => {
+          //   const coord = { x: ball.pos[0], y: ball.pos[1] };
+          //   const data = { num: cur, frame: response, coord: coord };
+          //   buffer.push(data);
+          // });
+          setTimeout(() => {
+            let x = positions[cur][0];
+            let y = positions[cur][1];
+            cur++;
+            box = new Box(x, y, box.w - 1, box.h - 1);
+            ball.rad -= 0.15;
+            fscore++;
+            onTarget = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            box.draw(ctx);
+            ball.draw(ctx);
+            gameStart();
+          }, 100);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     window.addEventListener('resize', handleResize);
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
     if (ready) startDrawing();
     return () => {
       window.removeEventListener('resize', handleResize);
+
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [ready]);
 

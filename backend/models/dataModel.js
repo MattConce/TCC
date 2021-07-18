@@ -1,12 +1,16 @@
 import mongoose from 'mongoose';
 
-const dataSchema = new mongoose.Schema({
-  x: { type: Number, required: true },
-  y: { type: Number, required: true },
-  leftEye: { type: String, required: true },
-  rightEye: { type: String, required: true },
+const infoSchema = mongoose.Schema({
+  x: { type: Number },
+  y: { type: Number },
+  timestamp: { type: Number },
 });
 
-const dataModel = mongoose.model('data', dataSchema);
+const dataSchema = new mongoose.Schema({
+  video: { type: String, required: true },
+  info: [infoSchema],
+});
+
+const dataModel = mongoose.model('Data', dataSchema);
 
 export default dataModel;

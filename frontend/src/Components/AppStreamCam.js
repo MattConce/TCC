@@ -1,4 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
+import Axios from 'axios';
+import axios from 'axios';
 import * as tf from '@tensorflow/tfjs';
 
 import * as facemesh from '@tensorflow-models/face-landmarks-detection';
@@ -19,6 +21,7 @@ function AppStreamCam() {
   const [trackingStatus, setTrackingStatus] = useState(false);
   const [intervalId, setIntervalId] = useState('');
   const [netFacemesh, setNetFacemesh] = useState('');
+  const [buffer, setBuffer] = useState([]);
 
   const screenFull = useFullScreenHandle();
 
@@ -78,17 +81,44 @@ function AppStreamCam() {
       const blob = new Blob(recordedChunks, {
         type: 'video/webm',
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      document.body.appendChild(a);
-      a.style = 'display: none';
-      a.href = url;
-      a.download = 'react-webcam-stream-capture.webm';
-      a.click();
-      window.URL.revokeObjectURL(url);
+      uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
+        saveTrainingData({
+          video: response,
+          info: buffer,
+        });
+      });
       setRecordedChunks([]);
+    } else {
+      console.log('error');
     }
   }, [recordedChunks]);
+
+  const saveTrainingData = (trainData) => {
+    Axios.post('/api/upload', trainData)
+      .then((response) => {
+        console.log('ok');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const blobToBase64 = async (blob) => {
+    return new Promise((resolve, _) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const uploadFileHandler = async (file, name) => {
+    const bodyFormData = new FormData();
+    const video = await blobToBase64(file);
+    bodyFormData.append('video', video);
+    bodyFormData.append('name', name);
+    const response = await Axios.post('/api/upload/save', bodyFormData);
+    return response.data;
+  };
 
   const getCurrentFrameFromVideo = async () => {
     // Get canvas
@@ -262,6 +292,10 @@ function AppStreamCam() {
     screenFull.exit();
   };
 
+  const handleSendBuffer = (data) => {
+    setBuffer((prev) => prev.concat(data));
+  };
+
   const startTracking = () => {
     if (!trackingStatus) {
       setTrackingStatus(true);
@@ -279,7 +313,9 @@ function AppStreamCam() {
   useEffect(() => {
     // Load model at the begin
     if (!netFacemesh) loadFacemesh();
-  }, [gameFinished]);
+    if (gameFinished && !capturing && recordedChunks.length > 0)
+      handleDownload();
+  }, [gameFinished, capturing, recordedChunks]);
 
   return (
     <div className={gameStarted ? 'container-full' : 'container'}>
@@ -330,7 +366,8 @@ function AppStreamCam() {
       <FullScreen handle={screenFull} onChange={reportChange}>
         {gameStarted && !gameFinished ? (
           <Game
-            getCurrentFrame={getCurrentFrameFromVideo}
+            sendBuffer={handleSendBuffer}
+            getRecordedChunks={handleDownload}
             videoRef={webcamRef.current.video}
             onChange={reportGameChange}
           ></Game>

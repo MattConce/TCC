@@ -7,8 +7,9 @@ function Game(props) {
   const [ready, setReady] = useState(false);
   const [score, setScore] = useState(0);
   const [maxScore, setMaxScore] = useState(0);
+  const [buffer, setBuffer] = useState([]);
 
-  let buffer = [];
+  // let buffer = [];
   let onTarget;
   let box;
   let ball;
@@ -83,28 +84,16 @@ function Game(props) {
         setScore(fscore);
         clearInterval(intervalId);
         setGameFinished(true);
-        // for (let data of buffer) {
-        //   const { num, frame, coord } = data;
-        //   // upload all images and save the data
-        //   uploadFileHandler(frame.leftEyeImg, `leftEyeImg-${num}`)
-        //     .then((response) => {
-        //       return response;
-        //     })
-        //     .then((response) => {
-        //       const pathLeftImg = response;
-        //       uploadFileHandler(frame.rightEyeImg, `rightEyeImg-${num}`).then(
-        //         (response) => {
-        //           const pathRightImg = response;
-        //           // Save data to the database
-        //           saveTrainingData({
-        //             coordinates: { x: coord.x, y: coord.y },
-        //             pathLeftImg,
-        //             pathRightImg,
-        //           });
-        //         }
-        //       );
-        //     });
-        // }
+        let recordedChunks = props.getRecordedChunks();
+        const blob = new Blob(recordedChunks, {
+          type: 'video/webm',
+        });
+        uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
+          saveTrainingData({
+            video: response,
+            info: buffer,
+          });
+        });
       } else if (first) {
         first = false;
       } else if (!onTarget && canvasRef.current) {
@@ -241,7 +230,7 @@ function Game(props) {
 
   const uploadFileHandler = async (file, name) => {
     const bodyFormData = new FormData();
-    bodyFormData.append('image', file);
+    bodyFormData.append('video', file);
     bodyFormData.append('name', name);
     const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
@@ -263,6 +252,7 @@ function Game(props) {
   const handleInitialDialog = () => {
     if (gameFinished) {
       props.onChange(gameFinished);
+      props.sendBuffer(buffer);
     } else {
       setReady(true);
     }
@@ -311,41 +301,24 @@ function Game(props) {
       else box.draw(ctx);
       ball.draw(ctx, false);
       if (onTarget) {
-        console.log('time: ', props.videoRef.currentTime);
         clearInterval(intervalId);
         if (cur >= positions.length) {
           setScore(fscore);
           setGameFinished(true);
-          // for (let data of buffer) {
-          //   const { num, frame, coord } = data;
-
-          //   upload all images and save the data
-          //   uploadFileHandler(frame.leftEyeImg, `leftEyeImg-${num}`)
-          //     .then((response) => {
-          //       return response;
-          //     })
-          //     .then((response) => {
-          //       const pathLeftImg = response;
-          //       uploadFileHandler(
-          //         frame.rightEyeImg,
-          //         `rightEyeImg-${num}`
-          //       ).then((response) => {
-          //         const pathRightImg = response;
-          //         // Save data to the database
-          //         saveTrainingData({
-          //           coordinates: { x: coord.x, y: coord.y },
-          //           pathLeftImg,
-          //           pathRightImg,
-          //         });
-          //       });
-          //     });
-          // }
-        } else {
-          // props.getCurrentFrame().then((response) => {
-          //   const coord = { x: ball.pos[0], y: ball.pos[1] };
-          //   const data = { num: cur, frame: response, coord: coord };
-          //   buffer.push(data);
+          // const blob = new Blob(recordedChunks, {
+          //   type: 'video/webm',
           // });
+          // uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
+          //   saveTrainingData({
+          //     video: response,
+          //     info: buffer,
+          //   });
+          // });
+        } else {
+          const coord = { x: ball.pos[0], y: ball.pos[1] };
+          const time = { timestamp: props.videoRef.currentTime };
+          const data = { coord: coord, time: time };
+          setBuffer((prev) => prev.concat(data));
           setTimeout(() => {
             let x = positions[cur][0];
             let y = positions[cur][1];

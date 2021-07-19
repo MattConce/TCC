@@ -76,7 +76,7 @@ function AppStreamCam() {
     setCapturing(false);
   }, [mediaRecorderRef, webcamRef, setCapturing]);
 
-  const handleDownload = useCallback(() => {
+  const saveDataOnServer = useCallback(() => {
     if (recordedChunks.length) {
       const blob = new Blob(recordedChunks, {
         type: 'video/webm',
@@ -87,7 +87,6 @@ function AppStreamCam() {
           info: buffer,
         });
       });
-      setRecordedChunks([]);
     } else {
       console.log('error');
     }
@@ -230,11 +229,28 @@ function AppStreamCam() {
   };
 
   const handleButtonStart = () => {
+    setRecordedChunks([]);
     setGameStarted(true);
     setGameFinished(false);
     handleFullScreen();
     handleStartCaptureClick();
   };
+
+  const handleDownload = React.useCallback(() => {
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, {
+        type: 'video/webm',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      document.body.appendChild(a);
+      a.style = 'display: none';
+      a.href = url;
+      a.download = 'react-webcam-stream-capture.webm';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  }, [recordedChunks]);
 
   const loadFacemesh = async () => {
     const net = await facemesh.load(
@@ -312,9 +328,9 @@ function AppStreamCam() {
 
   useEffect(() => {
     // Load model at the begin
-    if (!netFacemesh) loadFacemesh();
+    // if (!netFacemesh) loadFacemesh();
     if (gameFinished && !capturing && recordedChunks.length > 0)
-      handleDownload();
+      saveDataOnServer();
   }, [gameFinished, capturing, recordedChunks]);
 
   return (
@@ -367,7 +383,7 @@ function AppStreamCam() {
         {gameStarted && !gameFinished ? (
           <Game
             sendBuffer={handleSendBuffer}
-            getRecordedChunks={handleDownload}
+            getRecordedChunks={saveDataOnServer}
             videoRef={webcamRef.current.video}
             onChange={reportGameChange}
           ></Game>
@@ -382,15 +398,15 @@ function AppStreamCam() {
             {/*   {' '} */}
             {/*   Start Tracking */}
             {/* </button> */}
-            <button
-              disabled={!netFacemesh}
-              className="button alt"
-              onClick={handleButtonStart}
-            >
+            <button className="button alt" onClick={handleButtonStart}>
               {' '}
               Start Game
             </button>
-            <button onClick={handleDownload}>Download</button>
+            {recordedChunks.length > 0 && (
+              <button className="button alt" onClick={handleDownload}>
+                Download
+              </button>
+            )}
           </div>
         )}
       </FullScreen>

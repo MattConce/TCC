@@ -310,6 +310,13 @@ function Game(props) {
       {!ready ? (
         <div className="modal-content shadow">
           <h1 className="Mono">Guarde a bola na caixa</h1>
+          <ul className="instructions">
+            <li>Arraste a bola até a caixa com o mouse.</li>
+            <li>
+              São 28 caixas, para cada caixa você tem 3 segundos antes que ela
+              mude de lugar.
+            </li>
+          </ul>
           <img
             src="/tutorial.png"
             alt="ball and box"

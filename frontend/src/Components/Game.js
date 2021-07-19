@@ -9,7 +9,6 @@ function Game(props) {
   const [maxScore, setMaxScore] = useState(0);
   const [buffer, setBuffer] = useState([]);
 
-  // let buffer = [];
   let onTarget;
   let box;
   let ball;
@@ -41,13 +40,14 @@ function Game(props) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = '1';
       // Canvas dimensions
-      const resolution = 400;
+      const resolution = 250;
       const rows = Math.floor(canvas.height / resolution);
       const cols = Math.floor(canvas.width / resolution);
       const offsetX = canvas.width - cols * resolution;
       const offsetY = canvas.height - rows * resolution;
+      console.log(rows, cols);
 
-      setMaxScore(rows * cols - 1);
+      setMaxScore(rows * cols);
 
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
@@ -84,16 +84,6 @@ function Game(props) {
         setScore(fscore);
         clearInterval(intervalId);
         setGameFinished(true);
-        let recordedChunks = props.getRecordedChunks();
-        const blob = new Blob(recordedChunks, {
-          type: 'video/webm',
-        });
-        uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
-          saveTrainingData({
-            video: response,
-            info: buffer,
-          });
-        });
       } else if (first) {
         first = false;
       } else if (!onTarget && canvasRef.current) {
@@ -121,21 +111,9 @@ function Game(props) {
     return (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
   };
 
-  // const left = (a, b, c) => {
-  //   return Area2(a, b, c) > 0;
-  // };
-
-  // const right = (a, b, c) => {
-  //   return Area2(a, b, c) < 0;
-  // };
-
   const leftOn = (a, b, c) => {
     return Area2(a, b, c) >= 0;
   };
-
-  // const collinear = (a, b, c) => {
-  //   return Area2(a, b, c) == 0;
-  // };
 
   class Ball {
     constructor(x, y, r) {
@@ -218,24 +196,6 @@ function Game(props) {
     return good;
   };
 
-  const saveTrainingData = (trainData) => {
-    Axios.post('/api/upload', trainData)
-      .then((response) => {
-        console.log('ok');
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const uploadFileHandler = async (file, name) => {
-    const bodyFormData = new FormData();
-    bodyFormData.append('video', file);
-    bodyFormData.append('name', name);
-    const response = await Axios.post('/api/upload/save', bodyFormData);
-    return response.data;
-  };
-
   const handleResize = () => {
     setDimensions({
       height: window.innerHeight,
@@ -301,19 +261,11 @@ function Game(props) {
       else box.draw(ctx);
       ball.draw(ctx, false);
       if (onTarget) {
+        fscore++;
         clearInterval(intervalId);
         if (cur >= positions.length) {
           setScore(fscore);
           setGameFinished(true);
-          // const blob = new Blob(recordedChunks, {
-          //   type: 'video/webm',
-          // });
-          // uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
-          //   saveTrainingData({
-          //     video: response,
-          //     info: buffer,
-          //   });
-          // });
         } else {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
           const time = { timestamp: props.videoRef.currentTime };
@@ -325,7 +277,6 @@ function Game(props) {
             cur++;
             box = new Box(x, y, box.w - 1, box.h - 1);
             ball.rad -= 0.15;
-            fscore++;
             onTarget = false;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             box.draw(ctx);

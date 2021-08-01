@@ -81,12 +81,20 @@ router.post('/', async (req, res) => {
     const info = {
       x: b.coord.x,
       y: b.coord.y,
-      timeStamp: b.time,
+      timestampInit: b.time.timestampInit,
+      timestampEnd: b.time.timestampEnd,
     };
     infoArray.push(info);
   }
-  const data = new Data({ video: req.body.video, info: infoArray });
+  const data = new Data({
+    video: req.body.video,
+    os: req.body.os,
+    resolution: req.body.resolution,
+    gpu: req.body.gpu,
+    info: infoArray,
+  });
   const newData = await data.save();
+  console.log(newData);
   if (newData) {
     return res.status(201).send({ message: 'New Data Created', data: newData });
   }

@@ -81,9 +81,26 @@ function AppStreamCam() {
       const blob = new Blob(recordedChunks, {
         type: 'video/webm',
       });
+      let canvas = canvasRef.current;
+      let gpu = 'null';
+      if (canvas) {
+        let webgl = canvas.getContext('webgl2');
+        let debugInfo = webgl.getExtension('webgl_debug_renderer_info');
+        gpu = webgl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        console.log('gpu: ', gpu);
+      }
+      let osType = 'null';
+      if (navigator.appVersion.indexOf('Win') !== -1) osType = 'Windows OS';
+      if (navigator.appVersion.indexOf('Mac') !== -1) osType = 'MacOS';
+      if (navigator.appVersion.indexOf('X11') !== -1) osType = 'UNIX OS';
+      if (navigator.appVersion.indexOf('Linux') !== -1) osType = 'Linux OS';
+      console.log('OS:', osType);
       uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
         saveTrainingData({
           video: response,
+          os: osType,
+          resolution: `${window.screen.width}x${window.screen.height}`,
+          gpu: gpu,
           info: buffer,
         });
       });
@@ -115,8 +132,8 @@ function AppStreamCam() {
     const video = await blobToBase64(file);
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
-    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
-    // const response = await Axios.post('/api/upload/save', bodyFormData);
+    // const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
 

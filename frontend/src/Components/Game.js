@@ -22,6 +22,7 @@ function Game(props) {
   let moveY = 0;
   let first = true;
   let fscore = 0;
+  let actionBlocked = false;
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -40,7 +41,7 @@ function Game(props) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = '1';
       // Canvas dimensions
-      const resolution = 250;
+      const resolution = 450;
       const rows = Math.floor(canvas.height / resolution);
       const cols = Math.floor(canvas.width / resolution);
       const offsetX = canvas.width - cols * resolution;
@@ -250,6 +251,7 @@ function Game(props) {
   };
 
   const handleMouseUp = (e) => {
+    if (actionBlocked) return;
     let canvas = canvasRef.current;
     if (!canvas) return;
     let ctx = canvas.getContext('2d');
@@ -260,6 +262,7 @@ function Game(props) {
       else box.draw(ctx);
       ball.draw(ctx, false);
       if (onTarget) {
+        actionBlocked = true;
         fscore++;
         clearInterval(intervalId);
         if (cur >= positions.length) {
@@ -267,23 +270,32 @@ function Game(props) {
           setGameFinished(true);
         } else {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
-          const time = { timestamp: props.videoRef.currentTime };
-          const data = { coord: coord, time: time };
-          setBuffer((prev) => prev.concat(data));
+          const timeInit = props.videoRef.currentTime;
           const color = ball.color;
+          const radius = ball.rad;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          box.draw(ctx);
           let t = 0;
           let id = setInterval(() => {
+            ball.rad = radius / 2;
             if (t % 3 === 0) ball.color = 'yellow';
             if (t % 3 === 1) ball.color = 'lightYellow';
             else ball.color = color;
             t++;
             ball.draw(ctx);
-          }, 100);
+          }, 50);
           setTimeout(() => {
+            // Save the data for the current target
+            const timeEnd = props.videoRef.currentTime;
+            const time = { timestampInit: timeInit, timestampEnd: timeEnd };
+            const data = { coord: coord, time: time };
+            setBuffer((prev) => prev.concat(data));
+            // Spawn new position
             let x = positions[cur][0];
             let y = positions[cur][1];
             cur++;
             box = new Box(x, y, box.w - 1, box.h - 1);
+            ball.rad = radius;
             ball.rad -= 0.15;
             onTarget = false;
             ball.color = color;
@@ -291,6 +303,7 @@ function Game(props) {
             box.draw(ctx);
             ball.draw(ctx);
             clearInterval(id);
+            actionBlocked = false;
             gameStart();
           }, 1000);
         }

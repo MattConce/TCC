@@ -3,10 +3,22 @@ import multer from 'multer';
 import fs from 'fs';
 import Data from '../models/dataModel';
 
+const { google } = require('googleapis');
+
+const KEYFILEPATH = './credentials.json';
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
+
+const auth = new google.auth.GoogleAuth({
+  keyFile: KEYFILEPATH,
+  scopes: SCOPES,
+});
+
+const drive = google.drive({ version: 'v3', auth });
+
 const upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
 
+// Express routes
 const router = express.Router();
-
 router.use(express.json());
 
 router.post('/save', upload.single('video'), async (req, res) => {
@@ -21,6 +33,44 @@ router.post('/save', upload.single('video'), async (req, res) => {
     });
   } catch (err) {
     res.status(400).send(err);
+  }
+});
+
+router.post('/save/gdrive', upload.single('video'), async (req, res) => {
+  const { video } = req.body;
+  const { name } = req.body;
+  const encoded = video.split(';base64,').pop();
+
+  let fileMetadata = {
+    name: name,
+    parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
+  };
+  try {
+    const path = `uploads/${name}.webm`;
+    fs.appendFile(path, encoded, 'base64', (err) => {
+      if (err) return console.log(err);
+      let media = {
+        mimeType: 'video/webm',
+        body: fs.createReadStream(path),
+      };
+      drive.files.create(
+        {
+          resource: fileMetadata,
+          media: media,
+          fields: 'id',
+        },
+        (err, file) => {
+          if (err) {
+            // Handle error
+            console.error(err);
+          } else {
+            res.send(file.data.id);
+          }
+        }
+      );
+    });
+  } catch (err) {
+    res.status(404).send(err);
   }
 });
 

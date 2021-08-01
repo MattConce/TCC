@@ -17,6 +17,9 @@ node_modules
 # production
 /build
 
+# Credentials
+credentials.json
+
 # misc
 .DS_Store
 .env

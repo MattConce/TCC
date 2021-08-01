@@ -45,7 +45,6 @@ function Game(props) {
       const cols = Math.floor(canvas.width / resolution);
       const offsetX = canvas.width - cols * resolution;
       const offsetY = canvas.height - rows * resolution;
-      console.log(rows, cols);
 
       setMaxScore(rows * cols);
 
@@ -271,6 +270,15 @@ function Game(props) {
           const time = { timestamp: props.videoRef.currentTime };
           const data = { coord: coord, time: time };
           setBuffer((prev) => prev.concat(data));
+          const color = ball.color;
+          let t = 0;
+          let id = setInterval(() => {
+            if (t % 3 === 0) ball.color = 'yellow';
+            if (t % 3 === 1) ball.color = 'lightYellow';
+            else ball.color = color;
+            t++;
+            ball.draw(ctx);
+          }, 100);
           setTimeout(() => {
             let x = positions[cur][0];
             let y = positions[cur][1];
@@ -278,11 +286,13 @@ function Game(props) {
             box = new Box(x, y, box.w - 1, box.h - 1);
             ball.rad -= 0.15;
             onTarget = false;
+            ball.color = color;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             box.draw(ctx);
             ball.draw(ctx);
+            clearInterval(id);
             gameStart();
-          }, 100);
+          }, 1000);
         }
       }
     }

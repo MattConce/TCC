@@ -5,6 +5,9 @@ import Data from '../models/dataModel';
 
 const { google } = require('googleapis');
 
+const Stream = require('stream');
+const stream = new Stream();
+
 const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 
@@ -34,6 +37,12 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
   const { name } = req.body;
   const encoded = video.split(';base64,').pop();
 
+  const buffer = new Buffer.from(encoded, 'base64');
+  var Readable = require('stream').Readable;
+  var bs = new Readable();
+  bs.push(buffer);
+  bs.push(null);
+
   const auth = new google.auth.GoogleAuth({
     keyFile: KEYFILEPATH,
     scopes: SCOPES,
@@ -45,28 +54,46 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
     parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
   };
   try {
-    const path = `uploads/${name}.webm`;
-    fs.appendFile(path, encoded, 'base64', (err) => {
-      if (err) return console.log(err);
-      let media = {
-        mimeType: 'video/webm',
-        body: fs.createReadStream(path),
-      };
-      drive.files.create(
-        {
-          resource: fileMetadata,
-          media: media,
-          fields: 'id',
-        },
-        (err, file) => {
-          if (err) {
-            console.error(err);
-          } else {
-            res.send(file.data.id);
-          }
+    let media = {
+      mimeType: 'video/webm',
+      body: bs,
+    };
+    drive.files.create(
+      {
+        resource: fileMetadata,
+        media: media,
+        fields: 'id',
+      },
+      (err, file) => {
+        if (err) {
+          console.error(err);
+        } else {
+          res.send(file.data.id);
         }
-      );
-    });
+      }
+    );
+    // const path = `uploads/${name}.webm`;
+    // fs.appendFile(path, encoded, 'base64', (err) => {
+    //   if (err) return console.log(err);
+    //   let media = {
+    //     mimeType: 'video/webm',
+    //     body: fs.createReadStream(path),
+    //   };
+    //   drive.files.create(
+    //     {
+    //       resource: fileMetadata,
+    //       media: media,
+    //       fields: 'id',
+    //     },
+    //     (err, file) => {
+    //       if (err) {
+    //         console.error(err);
+    //       } else {
+    //         res.send(file.data.id);
+    //       }
+    //     }
+    //   );
+    // });
   } catch (err) {
     res.status(404).send(err);
   }

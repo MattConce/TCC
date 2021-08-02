@@ -61,7 +61,6 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
         },
         (err, file) => {
           if (err) {
-            // Handle error
             console.error(err);
           } else {
             res.send(file.data.id);
@@ -94,7 +93,7 @@ router.post('/', async (req, res) => {
     info: infoArray,
   });
   const newData = await data.save();
-  console.log(newData);
+  // console.log(newData);
   if (newData) {
     return res.status(201).send({ message: 'New Data Created', data: newData });
   }

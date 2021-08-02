@@ -1,12 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
-import Axios from 'axios';
 
 function Game(props) {
   const canvasRef = useRef(null);
   const [gameFinished, setGameFinished] = useState(false);
   const [ready, setReady] = useState(false);
   const [score, setScore] = useState(0);
-  const [maxScore, setMaxScore] = useState(0);
+  const [maxScore, setMaxScore] = useState('0');
   const [buffer, setBuffer] = useState([]);
 
   let onTarget;
@@ -35,28 +34,33 @@ function Game(props) {
       canvas.width = dimensions.width;
       canvas.height = dimensions.height;
 
+      // Get context
       const ctx = canvas.getContext('2d');
 
       ctx.fillStyle = '#FEF5E7';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = '1';
       // Canvas dimensions
-      const resolution = 450;
-      const rows = Math.floor(canvas.height / resolution);
-      const cols = Math.floor(canvas.width / resolution);
-      const offsetX = canvas.width - cols * resolution;
-      const offsetY = canvas.height - rows * resolution;
+      // const resolution = 200;
+      // const rows = Math.floor(canvas.height / resolution);
+      // const cols = Math.floor(canvas.width / resolution);
+      const rows = 5;
+      const cols = 7;
+      const resolutionY = Math.floor(canvas.height / rows);
+      const resolutionX = Math.floor((1.1 * canvas.width) / cols);
+      const offsetX = canvas.width - cols * resolutionX;
+      const offsetY = canvas.height - rows * resolutionY;
+      const resolution = resolutionY;
 
       setMaxScore(rows * cols);
 
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
-          let x = j * resolution + offsetX / 2;
-          let y = i * resolution + offsetY / 4;
-          positions.push([x + resolution / 2, y + resolution / 2]);
+          let x = j * resolutionX + offsetX / 2;
+          let y = i * resolutionY + offsetY / 4;
+          positions.push([x + resolutionX / 3, y + resolutionY / 4]);
         }
       }
-
       cur = 0;
       onTarget = false;
       positions.sort(() => 0.5 - Math.random());
@@ -98,13 +102,17 @@ function Game(props) {
         box.draw(ctx);
         ball.draw(ctx);
       }
-    }, 2300);
+    }, 5000);
   };
 
   const insideCanvas = (x, y) => {
-    let canvas = canvasRef.current;
-    if (!canvas) return;
-    return x >= 0 && x < canvas.width && y >= 0 && y < canvas.height;
+    if (!canvasRef.current) return;
+    return (
+      x >= 0 &&
+      x < canvasRef.current.width &&
+      y >= 0 &&
+      y < canvasRef.current.height
+    );
   };
 
   const Area2 = (a, b, c) => {
@@ -219,6 +227,7 @@ function Game(props) {
   };
 
   const handleMouseDown = (e) => {
+    if (actionBlocked) return;
     e.preventDefault();
     if (!insideCanvas(e.offsetX, e.offsetY)) return;
     mouseX = e.offsetX;
@@ -229,6 +238,7 @@ function Game(props) {
   };
 
   const handleMouseMove = (e) => {
+    if (actionBlocked) return;
     e.preventDefault();
     let canvas = canvasRef.current;
     if (!canvas) return;
@@ -277,7 +287,7 @@ function Game(props) {
           box.draw(ctx);
           let t = 0;
           let id = setInterval(() => {
-            ball.rad = radius / 2;
+            ball.rad = radius / 3;
             if (t % 3 === 0) ball.color = 'yellow';
             if (t % 3 === 1) ball.color = 'lightYellow';
             else ball.color = color;
@@ -294,9 +304,8 @@ function Game(props) {
             let x = positions[cur][0];
             let y = positions[cur][1];
             cur++;
-            box = new Box(x, y, box.w - 1, box.h - 1);
+            box = new Box(x, y, box.w, box.h);
             ball.rad = radius;
-            ball.rad -= 0.15;
             onTarget = false;
             ball.color = color;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -305,7 +314,7 @@ function Game(props) {
             clearInterval(id);
             actionBlocked = false;
             gameStart();
-          }, 1000);
+          }, 500);
         }
       }
     }
@@ -313,7 +322,6 @@ function Game(props) {
 
   useEffect(() => {
     window.addEventListener('resize', handleResize);
-
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
@@ -321,7 +329,6 @@ function Game(props) {
     if (ready) startDrawing();
     return () => {
       window.removeEventListener('resize', handleResize);
-
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -336,7 +343,7 @@ function Game(props) {
           <ul className="instructions">
             <li>Arraste a bola até a caixa com o mouse.</li>
             <li>
-              São 28 caixas, para cada caixa você tem 3 segundos antes que ela
+              São 35 caixas, para cada caixa você tem 5 segundos antes que ela
               mude de lugar.
             </li>
           </ul>

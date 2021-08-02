@@ -25,7 +25,7 @@ app.use((req, res, next) => {
   res.header(
     'Access-Control-Allow-Headers',
     'Access-Control-Allow-Origin',
-    'Origin, X-Requested-With, Content-Type, Accept',
+    'Origin, X-Requested-With, Content-Type, Accept'
   );
   next();
 });
@@ -40,6 +40,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(`${__dirname}/../frontend/build/index.html`));
 });
 
-app.listen(port, () => {
+let server = app.listen(port, () => {
   console.log(`Server serves at http://localhost:${port}`);
 });
+
+server.timeout = 120000;

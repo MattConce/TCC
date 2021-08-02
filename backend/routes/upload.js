@@ -5,15 +5,8 @@ import Data from '../models/dataModel';
 
 const { google } = require('googleapis');
 
-const KEYFILEPATH = 'credentials.json';
+const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
-
-const auth = new google.auth.GoogleAuth({
-  keyFile: KEYFILEPATH,
-  scopes: SCOPES,
-});
-
-const drive = google.drive({ version: 'v3', auth });
 
 const upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
 
@@ -40,6 +33,12 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
   const { video } = req.body;
   const { name } = req.body;
   const encoded = video.split(';base64,').pop();
+
+  const auth = new google.auth.GoogleAuth({
+    keyFile: KEYFILEPATH,
+    scopes: SCOPES,
+  });
+  const drive = google.drive({ version: 'v3', auth });
 
   let fileMetadata = {
     name: name,

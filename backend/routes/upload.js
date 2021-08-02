@@ -46,54 +46,54 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
   bs.push(buffer);
   bs.push(null);
 
+  console.log('auth', auth);
+
   let fileMetadata = {
     name: name,
     parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
   };
-  try {
-    let media = {
-      mimeType: 'video/webm',
-      body: bs,
-    };
-    drive.files.create(
-      {
-        resource: fileMetadata,
-        media: media,
-        fields: 'id',
-      },
-      (err, file) => {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.send(file.data.id);
-        }
+  let media = {
+    mimeType: 'video/webm',
+    body: bs,
+  };
+  drive.files.create(
+    {
+      resource: fileMetadata,
+      media: media,
+      fields: 'id',
+    },
+    (err, file) => {
+      console.log('here');
+      if (err) {
+        console.log('ERRor===========', err);
+        res.status(500).send(err);
+      } else {
+        res.send(file.data.id);
       }
-    );
-    // const path = `uploads/${name}.webm`;
-    // fs.appendFile(path, encoded, 'base64', (err) => {
-    //   if (err) return console.log(err);
-    //   let media = {
-    //     mimeType: 'video/webm',
-    //     body: fs.createReadStream(path),
-    //   };
-    //   drive.files.create(
-    //     {
-    //       resource: fileMetadata,
-    //       media: media,
-    //       fields: 'id',
-    //     },
-    //     (err, file) => {
-    //       if (err) {
-    //         console.error(err);
-    //       } else {
-    //         res.send(file.data.id);
-    //       }
-    //     }
-    //   );
-    // });
-  } catch (err) {
-    res.status(404).send(err);
-  }
+    }
+  );
+  // const path = `uploads/${name}.webm`;
+  // fs.appendFile(path, encoded, 'base64', (err) => {
+  //   if (err) return console.log(err);
+  //   let media = {
+  //     mimeType: 'video/webm',
+  //     body: fs.createReadStream(path),
+  //   };
+  //   drive.files.create(
+  //     {
+  //       resource: fileMetadata,
+  //       media: media,
+  //       fields: 'id',
+  //     },
+  //     (err, file) => {
+  //       if (err) {
+  //         console.error(err);
+  //       } else {
+  //         res.send(file.data.id);
+  //       }
+  //     }
+  //   );
+  // });
 });
 
 router.post('/', async (req, res) => {

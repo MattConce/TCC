@@ -8,6 +8,16 @@ function Game(props) {
   const [maxScore, setMaxScore] = useState('0');
   const [buffer, setBuffer] = useState([]);
 
+  // Annotations for trainning section
+  const states = [
+    {
+      state: 'unpressed',
+      remark: 'Clique na bola vermelha e mantenha pressionado',
+    },
+    { state: 'pressed', remark: 'Arraste a bola para dentro da caixa' },
+    { state: 'ontarget', remark: 'Bom trabalho!' },
+  ];
+
   let onTarget;
   let box;
   let ball;
@@ -22,6 +32,10 @@ function Game(props) {
   let first = true;
   let fscore = 0;
   let actionBlocked = false;
+
+  let trainningMode = false;
+  let curState = 'unpressed';
+  let trainningTargets = 0;
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -65,6 +79,16 @@ function Game(props) {
       onTarget = false;
       positions.sort(() => 0.5 - Math.random());
 
+      // First trainning target
+      let x = 4 * resolutionX + offsetX / 2;
+      let y = 2 * resolutionY + offsetY / 4;
+      positions.unshift([x + resolutionX / 3, y + resolutionY / 3]);
+
+      // Second trainning target
+      x = 5 * resolutionX + offsetX / 2;
+      y = 3 * resolutionY + offsetY / 4;
+      positions.unshift([x + resolutionX / 3, y + resolutionY / 3]);
+
       box = new Box(
         positions[cur][0],
         positions[cur][1],
@@ -78,6 +102,15 @@ function Game(props) {
       box.draw(ctx);
       ball.draw(ctx);
 
+      trainningMode = true;
+      curState = states[0];
+      if (canvasRef.current && trainningMode) {
+        let canvas = canvasRef.current;
+        let ctx = canvas.getContext('2d');
+        ctx.font = '40px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText(curState.remark, 100, 100);
+      }
       if (ready) gameStart();
     }
   };
@@ -101,6 +134,13 @@ function Game(props) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         box.draw(ctx);
         ball.draw(ctx);
+        if (canvasRef.current && trainningMode) {
+          let canvas = canvasRef.current;
+          let ctx = canvas.getContext('2d');
+          ctx.font = '40px Arial';
+          ctx.fillStyle = 'black';
+          ctx.fillText(curState.remark, 100, 100);
+        }
       }
     }, 5000);
   };
@@ -232,6 +272,7 @@ function Game(props) {
     if (!insideCanvas(e.offsetX, e.offsetY)) return;
     mouseX = e.offsetX;
     mouseY = e.offsetY;
+    curState = states[1];
     if (ball.isInside(mouseX, mouseY)) {
       isDrawing = true;
     }
@@ -257,6 +298,13 @@ function Game(props) {
         box.draw(ctx);
       }
       ball.draw(ctx, true);
+      if (canvasRef.current && trainningMode) {
+        let canvas = canvasRef.current;
+        let ctx = canvas.getContext('2d');
+        ctx.font = '40px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText(curState.remark, 100, 100);
+      }
     }
   };
 
@@ -264,6 +312,7 @@ function Game(props) {
     if (actionBlocked) return;
     let canvas = canvasRef.current;
     if (!canvas) return;
+    curState = states[0];
     let ctx = canvas.getContext('2d');
     if (insideCanvas(e.offsetX, e.offsetY)) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -273,7 +322,7 @@ function Game(props) {
       ball.draw(ctx, false);
       if (onTarget) {
         actionBlocked = true;
-        fscore++;
+        if (!trainningMode) fscore++;
         clearInterval(intervalId);
         if (cur >= positions.length) {
           setScore(fscore);
@@ -287,19 +336,28 @@ function Game(props) {
           box.draw(ctx);
           let t = 0;
           let id = setInterval(() => {
+            curState = states[2];
             ball.rad = radius / 3;
             if (t % 3 === 0) ball.color = 'yellow';
             if (t % 3 === 1) ball.color = 'lightYellow';
             else ball.color = color;
             t++;
             ball.draw(ctx);
+            if (canvasRef.current && trainningMode) {
+              let canvas = canvasRef.current;
+              let ctx = canvas.getContext('2d');
+              ctx.font = '40px Arial';
+              ctx.fillStyle = 'green';
+              ctx.fillText(curState.remark, 300, 300);
+            }
           }, 50);
           setTimeout(() => {
+            curState = states[0];
             // Save the data for the current target
             const timeEnd = props.videoRef.currentTime;
             const time = { timestampInit: timeInit, timestampEnd: timeEnd };
             const data = { coord: coord, time: time };
-            setBuffer((prev) => prev.concat(data));
+            if (!trainningMode) setBuffer((prev) => prev.concat(data));
             // Spawn new position
             let x = positions[cur][0];
             let y = positions[cur][1];
@@ -313,9 +371,28 @@ function Game(props) {
             ball.draw(ctx);
             clearInterval(id);
             actionBlocked = false;
+            if (canvasRef.current && trainningMode) {
+              trainningTargets++;
+              if (trainningTargets > 1) trainningMode = false;
+              else {
+                let canvas = canvasRef.current;
+                let ctx = canvas.getContext('2d');
+                ctx.font = '40px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText(curState.remark, 100, 100);
+              }
+            }
             gameStart();
           }, 500);
         }
+      }
+      curState = states[0];
+      if (canvasRef.current && trainningMode) {
+        let canvas = canvasRef.current;
+        let ctx = canvas.getContext('2d');
+        ctx.font = '40px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText(curState.remark, 100, 100);
       }
     }
   };

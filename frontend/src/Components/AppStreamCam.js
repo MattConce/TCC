@@ -133,8 +133,8 @@ function AppStreamCam() {
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
 
-    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
-    // const response = await Axios.post('/api/upload/save', bodyFormData);
+    // const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
 

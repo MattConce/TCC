@@ -46,32 +46,33 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
   bs.push(buffer);
   bs.push(null);
 
-  console.log('auth', auth);
-
-  let fileMetadata = {
-    name: name,
-    parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
-  };
-  let media = {
-    mimeType: 'video/webm',
-    body: bs,
-  };
-  drive.files.create(
-    {
-      resource: fileMetadata,
-      media: media,
-      fields: 'id',
-    },
-    (err, file) => {
-      console.log('here');
-      if (err) {
-        console.log('ERRor===========', err);
-        res.status(500).send(err);
-      } else {
-        res.send(file.data.id);
+  try {
+    let fileMetadata = {
+      name: name,
+      parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
+    };
+    let media = {
+      mimeType: 'video/webm',
+      body: bs,
+    };
+    drive.files.create(
+      {
+        resource: fileMetadata,
+        media: media,
+        fields: 'id',
+      },
+      (err, file) => {
+        console.log('here');
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send(file.data.id);
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    res.status(404).send(err.message);
+  }
   // const path = `uploads/${name}.webm`;
   // fs.appendFile(path, encoded, 'base64', (err) => {
   //   if (err) return console.log(err);

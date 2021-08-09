@@ -22,6 +22,7 @@ function AppStreamCam() {
   const [intervalId, setIntervalId] = useState('');
   const [netFacemesh, setNetFacemesh] = useState('');
   const [buffer, setBuffer] = useState([]);
+  const [email, setEmail] = useState('');
 
   const screenFull = useFullScreenHandle();
 
@@ -31,6 +32,10 @@ function AppStreamCam() {
       column.push(matrix[i][col]);
     }
     return column;
+  };
+
+  const handleEmail = (e) => {
+    setEmail(e.target.value);
   };
 
   const handleFullScreen = () => {
@@ -97,6 +102,7 @@ function AppStreamCam() {
       console.log('OS:', osType);
       uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
         saveTrainingData({
+          email: email,
           video: response,
           os: osType,
           resolution: `${window.screen.width}x${window.screen.height}`,
@@ -408,18 +414,28 @@ function AppStreamCam() {
           ></Game>
         ) : (
           <div className="container-button">
-            {/* <button */}
-            {/*   disabled={!netFacemesh} */}
-            {/*   id="trackingButton" */}
-            {/*   onClick={startTracking} */}
-            {/*   className="button alt" */}
-            {/* > */}
-            {/*   {' '} */}
-            {/*   Start Tracking */}
-            {/* </button> */}
-            <button className="button alt" onClick={handleButtonStart}>
+            <form>
+              <label style={{ fontSize: '20px', fontStyle: 'bold' }}>
+                {' '}
+                Insira o email utilizado no formulário:{'   '}
+                <input
+                  className="shadow"
+                  style={{ height: '30px', fontSize: '15px' }}
+                  size="50"
+                  type="email"
+                  value={email}
+                  onChange={handleEmail}
+                  placeholder="Email"
+                />
+              </label>
+            </form>
+            <button
+              disabled={!email}
+              className="button alt"
+              onClick={handleButtonStart}
+            >
               {' '}
-              Start Game
+              Começar jogo
             </button>
             {recordedChunks.length > 0 && (
               <button className="button alt" onClick={handleDownload}>

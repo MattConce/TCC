@@ -20,6 +20,21 @@ const upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
 const router = express.Router();
 router.use(express.json());
 
+router.post('/googleforms', async (req, res) => {
+  let query = { email: req.body.email };
+  let update = {
+    email: req.body.email,
+    name: req.body.name,
+    birthday: req.body.birthday,
+    eyeHealth: req.body.eyeHealth,
+  };
+
+  let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+  let newData = await Data.findOneAndUpdate(query, update, options);
+
+  res.send('ok');
+});
+
 router.post('/save', upload.single('video'), async (req, res) => {
   const { video } = req.body;
   const { name } = req.body;
@@ -62,7 +77,6 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
         fields: 'id',
       },
       (err, file) => {
-        console.log('here');
         if (err) {
           res.status(500).send(err);
         } else {
@@ -109,15 +123,18 @@ router.post('/', async (req, res) => {
     };
     infoArray.push(info);
   }
-  const data = new Data({
+  let query = { email: req.body.email };
+  let update = {
+    email: req.body.email,
     video: req.body.video,
     os: req.body.os,
     resolution: req.body.resolution,
     gpu: req.body.gpu,
     info: infoArray,
-  });
-  const newData = await data.save();
-  // console.log(newData);
+  };
+  let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+  let newData = await Data.findOneAndUpdate(query, update, options);
+
   if (newData) {
     return res.status(201).send({ message: 'New Data Created', data: newData });
   }

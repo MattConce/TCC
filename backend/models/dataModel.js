@@ -8,10 +8,14 @@ const infoSchema = mongoose.Schema({
 });
 
 const dataSchema = new mongoose.Schema({
-  video: { type: String, required: true },
-  os: { type: String, required: true },
-  resolution: { type: String, required: true },
-  gpu: { type: String, required: true },
+  name: { type: String },
+  email: { type: String },
+  birthday: { type: String },
+  eyeHealth: { type: String },
+  video: { type: String },
+  os: { type: String },
+  resolution: { type: String },
+  gpu: { type: String },
   info: [infoSchema],
 });
 

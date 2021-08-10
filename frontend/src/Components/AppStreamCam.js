@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import Axios from 'axios';
-import axios from 'axios';
 import * as tf from '@tensorflow/tfjs';
 
 import * as facemesh from '@tensorflow-models/face-landmarks-detection';
@@ -139,8 +138,8 @@ function AppStreamCam() {
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
 
-    // const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
-    const response = await Axios.post('/api/upload/save', bodyFormData);
+    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    // const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
 
@@ -258,7 +257,6 @@ function AppStreamCam() {
     setGameStarted(true);
     setGameFinished(false);
     handleFullScreen();
-    handleStartCaptureClick();
   };
 
   const handleDownload = React.useCallback(() => {
@@ -362,6 +360,7 @@ function AppStreamCam() {
     <div className={gameStarted ? 'container-full' : 'container'}>
       <Webcam
         ref={webcamRef}
+        audio={false}
         style={{
           position: 'absolute',
           marginLeft: 'auto',
@@ -411,6 +410,7 @@ function AppStreamCam() {
             getRecordedChunks={saveDataOnServer}
             videoRef={webcamRef.current.video}
             onChange={reportGameChange}
+            handleStartCaptureClick={handleStartCaptureClick}
           ></Game>
         ) : (
           <div className="container-button">
@@ -432,13 +432,28 @@ function AppStreamCam() {
             <button
               disabled={!email}
               className="button alt"
+              style={{
+                margin: 'auto',
+                fontSize: '20px',
+                width: '180px',
+                height: '70px',
+              }}
               onClick={handleButtonStart}
             >
               {' '}
-              Começar jogo
+              Ir para coleta
             </button>
             {recordedChunks.length > 0 && (
-              <button className="button alt" onClick={handleDownload}>
+              <button
+                className="button alt"
+                style={{
+                  margin: 'auto',
+                  fontSize: '20px',
+                  width: '180px',
+                  height: '70px',
+                }}
+                onClick={handleDownload}
+              >
                 Download
               </button>
             )}

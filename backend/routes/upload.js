@@ -123,15 +123,19 @@ router.post('/', async (req, res) => {
     };
     infoArray.push(info);
   }
-  let query = { email: req.body.email };
-  let update = {
-    email: req.body.email,
+  let streamObj = {
     video: req.body.video,
     os: req.body.os,
     resolution: req.body.resolution,
     gpu: req.body.gpu,
     info: infoArray,
   };
+  let query = { email: req.body.email };
+  let update = {
+    email: req.body.email,
+    $push: { stream: streamObj },
+  };
+
   let options = { upsert: true, new: true, setDefaultsOnInsert: true };
   let newData = await Data.findOneAndUpdate(query, update, options);
 

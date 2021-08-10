@@ -7,16 +7,20 @@ const infoSchema = mongoose.Schema({
   timestampEnd: { type: Number },
 });
 
-const dataSchema = new mongoose.Schema({
-  name: { type: String },
-  email: { type: String },
-  birthday: { type: String },
-  eyeHealth: { type: String },
+const videoSchema = mongoose.Schema({
   video: { type: String },
   os: { type: String },
   resolution: { type: String },
   gpu: { type: String },
   info: [infoSchema],
+});
+
+const dataSchema = new mongoose.Schema({
+  name: { type: String },
+  email: { type: String },
+  birthday: { type: String },
+  eyeHealth: { type: String },
+  stream: [videoSchema],
 });
 
 const dataModel = mongoose.model('Data', dataSchema);

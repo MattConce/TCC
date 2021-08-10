@@ -19,7 +19,6 @@ const dataSchema = new mongoose.Schema({
   name: { type: String },
   email: { type: String },
   birthday: { type: String },
-  eyeHealth: { type: String },
   stream: [videoSchema],
 });
 

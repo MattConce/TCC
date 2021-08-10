@@ -26,7 +26,6 @@ router.post('/googleforms', async (req, res) => {
     email: req.body.email,
     name: req.body.name,
     birthday: req.body.birthday,
-    eyeHealth: req.body.eyeHealth,
   };
 
   let options = { upsert: true, new: true, setDefaultsOnInsert: true };

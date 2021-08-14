@@ -418,12 +418,21 @@ function AppStreamCam() {
               position: 'relative',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'right',
             }}
           >
-            <form style={{ position: 'absolute', top: '500px', left: '200px' }}>
-              <label style={{ fontSize: '20px', fontStyle: 'bold' }}>
-                {' '}
+            <form
+              style={{
+                position: 'absolute',
+                top: '500px',
+                left: '0',
+              }}
+            >
+              <label
+                style={{
+                  fontSize: '20px',
+                  fontStyle: 'italic',
+                }}
+              >
                 Insira o email utilizado no formulário:{'   '}
                 <input
                   className="shadow"

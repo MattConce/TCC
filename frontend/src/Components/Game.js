@@ -87,11 +87,24 @@ function Game(props) {
       );
 
       cur++;
-      let init = Math.floor(Math.random() * (positions.length - 1));
-      ball = new Ball(positions[init][0], positions[init][1], resolution / 10);
+      // Drawn a ball from positions vector and make sure it's not the same as box position
+      let init = [-1, -1];
+      do {
+        init = Math.floor(Math.random() * (positions.length - 1));
+      } while (
+        positions[init][0] === box.pos[0] &&
+        positions[init][1] === box.pos[1]
+      );
+      // Draw the select ball
+      ball = new Ball(
+        positions[init][0] + box.w / 2,
+        positions[init][1] + box.h / 2,
+        resolution / 10,
+        cur
+      );
       box.draw(ctx);
       ball.draw(ctx);
-
+      // Start game as trainning
       trainningMode = !gameStarted;
       if (ready) gameStart();
     }
@@ -112,6 +125,7 @@ function Game(props) {
         let x = positions[cur][0];
         let y = positions[cur][1];
         cur++;
+        ball.num = cur;
         box = new Box(x, y, box.w, box.h);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         box.draw(ctx);
@@ -139,17 +153,29 @@ function Game(props) {
   };
 
   class Ball {
-    constructor(x, y, r) {
+    constructor(x, y, r, num = 0) {
       this.pos = [x, y];
       this.rad = r;
       this.color = 'rgb(205, 97, 85, 1)';
       this.alpha = 'rgb(205, 97, 85, 0.7)';
+      this.num = num;
     }
     draw(ctx, alpha = false) {
       ctx.fillStyle = alpha ? this.alpha : this.color;
       ctx.beginPath();
       ctx.arc(this.pos[0], this.pos[1], this.rad, 0, 2 * Math.PI);
       ctx.fill();
+      if (!onTarget) {
+        ctx.fillStyle = 'black';
+        ctx.font = `${this.rad}px Arial`;
+        ctx.fillText(
+          this.num,
+          this.num > 9
+            ? this.pos[0] - this.rad / 2
+            : this.pos[0] - this.rad / 4,
+          this.pos[1] + this.rad / 4
+        );
+      }
     }
     isInside(x, y) {
       return (
@@ -308,19 +334,51 @@ function Game(props) {
         clearInterval(intervalId);
         if (cur >= positions.length) {
           setScore(fscore);
-          setGameFinished(true);
+          const color = ball.color;
+          const radius = ball.rad;
+          let t = 0;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          box.draw(ctx);
+          let id = setInterval(() => {
+            ball.rad = radius / 3;
+            if (t % 3 === 0) ball.color = 'yellow';
+            if (t % 3 === 1) ball.color = 'lightYellow';
+            else ball.color = color;
+            t++;
+            ball.draw(ctx);
+          }, 50);
+          setTimeout(() => {
+            clearInterval(id);
+            setGameFinished(true);
+          }, 500);
         } else if (trainningTargets > 2) {
           trainningMode = false;
-          setTrainningFinished(true);
-          setReady(false);
+          const color = ball.color;
+          const radius = ball.rad;
+          let t = 0;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          box.draw(ctx);
+          let id = setInterval(() => {
+            ball.rad = radius / 3;
+            if (t % 3 === 0) ball.color = 'yellow';
+            if (t % 3 === 1) ball.color = 'lightYellow';
+            else ball.color = color;
+            t++;
+            ball.draw(ctx);
+          }, 50);
+          setTimeout(() => {
+            clearInterval(id);
+            setTrainningFinished(true);
+            setReady(false);
+          }, 500);
         } else {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
           const timeInit = props.videoRef.currentTime;
           const color = ball.color;
           const radius = ball.rad;
+          let t = 0;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           box.draw(ctx);
-          let t = 0;
           let id = setInterval(() => {
             ball.rad = radius / 3;
             if (t % 3 === 0) ball.color = 'yellow';
@@ -341,6 +399,7 @@ function Game(props) {
             cur++;
             box = new Box(x, y, box.w, box.h);
             ball.rad = radius;
+            ball.num = cur;
             onTarget = false;
             ball.color = color;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -375,13 +434,19 @@ function Game(props) {
       {!ready && !trainningFinished ? (
         <div className="modal-content shadow">
           <h1 className="Mono">Guarde a bola na caixa</h1>
-          <ul className="instructions">
+          <ol className="instructions">
             <li>Arraste a bola até a caixa com o mouse.</li>
             <li>
               São 35 caixas, para cada caixa você tem 5 segundos antes que ela
               mude de lugar.
             </li>
-          </ul>
+            <li>
+              A bola seguinte sempre aparece na posição da caixa anterior.
+            </li>
+            <li>
+              Não tem problema erra o alvo, apenas faça a tarefa com atenção.
+            </li>
+          </ol>
           <img
             src="/tutorial.png"
             alt="ball and box"
@@ -391,6 +456,7 @@ function Game(props) {
           <button
             className="button-alt-2"
             style={{
+              margin: 'auto',
               fontSize: '20px',
               width: '180px',
               height: '70px',

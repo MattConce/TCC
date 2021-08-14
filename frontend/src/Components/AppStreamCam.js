@@ -413,8 +413,15 @@ function AppStreamCam() {
             handleStartCaptureClick={handleStartCaptureClick}
           ></Game>
         ) : (
-          <div className="container-button">
-            <form>
+          <div
+            style={{
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'right',
+            }}
+          >
+            <form style={{ position: 'absolute', top: '500px', left: '200px' }}>
               <label style={{ fontSize: '20px', fontStyle: 'bold' }}>
                 {' '}
                 Insira o email utilizado no formulário:{'   '}
@@ -429,22 +436,9 @@ function AppStreamCam() {
                 />
               </label>
             </form>
-            <button
-              disabled={!email}
-              className="button alt"
-              style={{
-                margin: 'auto',
-                fontSize: '20px',
-                width: '180px',
-                height: '70px',
-              }}
-              onClick={handleButtonStart}
-            >
-              {' '}
-              Ir para coleta
-            </button>
-            {recordedChunks.length > 0 && (
+            <div className="container-button">
               <button
+                disabled={!email}
                 className="button alt"
                 style={{
                   margin: 'auto',
@@ -452,11 +446,26 @@ function AppStreamCam() {
                   width: '180px',
                   height: '70px',
                 }}
-                onClick={handleDownload}
+                onClick={handleButtonStart}
               >
-                Download
+                {' '}
+                Ir para coleta
               </button>
-            )}
+              {recordedChunks.length > 0 && (
+                <button
+                  className="button alt"
+                  style={{
+                    margin: 'auto',
+                    fontSize: '20px',
+                    width: '180px',
+                    height: '70px',
+                  }}
+                  onClick={handleDownload}
+                >
+                  Download
+                </button>
+              )}
+            </div>
           </div>
         )}
       </FullScreen>

@@ -87,6 +87,7 @@ function Game(props) {
       );
 
       cur++;
+      trainningTargets++;
       // Drawn a ball from positions vector and make sure it's not the same as box position
       let init = [-1, -1];
       do {
@@ -118,6 +119,10 @@ function Game(props) {
         setGameFinished(true);
       } else if (first) {
         first = false;
+      } else if (trainningMode && cur >= 3 && canvasRef.current) {
+        clearInterval(intervalId);
+        setTrainningFinished(true);
+        setReady(false);
       } else if (!onTarget && canvasRef.current) {
         let canvas = canvasRef.current;
         let ctx = canvas.getContext('2d');
@@ -125,6 +130,7 @@ function Game(props) {
         let x = positions[cur][0];
         let y = positions[cur][1];
         cur++;
+        trainningTargets++;
         ball.num = cur;
         box = new Box(x, y, box.w, box.h);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -329,7 +335,6 @@ function Game(props) {
         actionBlocked = true;
 
         if (!trainningMode) fscore++;
-        else trainningTargets++;
 
         clearInterval(intervalId);
         if (cur >= positions.length) {
@@ -351,7 +356,7 @@ function Game(props) {
             clearInterval(id);
             setGameFinished(true);
           }, 500);
-        } else if (trainningTargets > 2) {
+        } else if (trainningMode && cur >= 3) {
           trainningMode = false;
           const color = ball.color;
           const radius = ball.rad;
@@ -397,6 +402,7 @@ function Game(props) {
             let x = positions[cur][0];
             let y = positions[cur][1];
             cur++;
+            trainningTargets++;
             box = new Box(x, y, box.w, box.h);
             ball.rad = radius;
             ball.num = cur;

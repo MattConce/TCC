@@ -138,8 +138,8 @@ function AppStreamCam() {
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
 
-    // const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
-    const response = await Axios.post('/api/upload/save', bodyFormData);
+    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    // const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
 
@@ -361,6 +361,10 @@ function AppStreamCam() {
       <Webcam
         ref={webcamRef}
         audio={false}
+        videoConstraints={{
+          width: { ideal: 4096 },
+          height: { ideal: 2160 },
+        }}
         style={{
           position: 'absolute',
           marginLeft: 'auto',
@@ -370,10 +374,8 @@ function AppStreamCam() {
           top: '10%',
           textAlign: 'center',
           zIndex: 5,
-          // width: 640,
-          // height: 480,
-          width: window.screen.width / 3,
-          height: window.screen.height / 2.25,
+          width: 640,
+          height: 480,
         }}
       />
       {/* <canvas */}

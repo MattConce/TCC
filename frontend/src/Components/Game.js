@@ -96,17 +96,17 @@ function Game(props) {
         positions[init][0] === box.pos[0] &&
         positions[init][1] === box.pos[1]
       );
+      // Start game as trainning
+      trainningMode = !gameStarted;
       // Draw the select ball
       ball = new Ball(
         positions[init][0] + box.w / 2,
         positions[init][1] + box.h / 2,
         resolution / 10,
-        cur
+        trainningMode ? 3 : 35
       );
       box.draw(ctx);
       ball.draw(ctx);
-      // Start game as trainning
-      trainningMode = !gameStarted;
       if (ready) gameStart();
     }
   };
@@ -129,9 +129,9 @@ function Game(props) {
         ball.pos = [box.cx, box.cy];
         let x = positions[cur][0];
         let y = positions[cur][1];
+        ball.num = trainningMode ? 3 - cur : 35 - cur;
         cur++;
         trainningTargets++;
-        ball.num = cur;
         box = new Box(x, y, box.w, box.h);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         box.draw(ctx);
@@ -401,11 +401,11 @@ function Game(props) {
             // Spawn new position
             let x = positions[cur][0];
             let y = positions[cur][1];
+            ball.num = trainningMode ? 3 - cur : 35 - cur;
             cur++;
             trainningTargets++;
             box = new Box(x, y, box.w, box.h);
             ball.rad = radius;
-            ball.num = cur;
             onTarget = false;
             ball.color = color;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -443,14 +443,15 @@ function Game(props) {
           <ol className="instructions">
             <li>Arraste a bola até a caixa com o mouse.</li>
             <li>
-              São 35 caixas, para cada caixa você tem 5 segundos antes que ela
-              mude de lugar.
+              A tarefa consiste em arrastar 35 bolas, para cada bola você tem 5
+              segundos antes que ela mude de lugar.
+            </li>
+            <li>
+              Não tem problema estorar o tempo de 5 segundos para algumas bolas,
+              apenas faça a tarefa com atenção.
             </li>
             <li>
               A bola seguinte sempre aparece na posição da caixa anterior.
-            </li>
-            <li>
-              Não tem problema errar o alvo, apenas faça a tarefa com atenção.
             </li>
           </ol>
           <img

@@ -438,7 +438,7 @@ function Game(props) {
   return (
     <div id="gameMain" className="container-full back">
       {!ready && !trainningFinished ? (
-        <div className="modal-content shadow">
+        <div className="modal-content shadow" style={{ top: '10%' }}>
           <h1 className="Mono">Guarde a bola na caixa</h1>
           <ol className="instructions">
             <li>Arraste a bola até a caixa com o mouse.</li>

@@ -474,7 +474,7 @@ function Game(props) {
           <span></span>
         </div>
       ) : trainningFinished ? (
-        <div className="modal-content shadow">
+        <div className="modal-content shadow" style={{ top: '10%' }}>
           <h1 className="Mono"> Você está pronto ?</h1>
           <img
             src="/tutorial.png"
@@ -519,7 +519,10 @@ function Game(props) {
           </div>
         </div>
       ) : gameFinished ? (
-        <div className="modal-content shadow" style={{ height: '60%' }}>
+        <div
+          className="modal-content shadow"
+          style={{ height: '60%', top: '10%' }}
+        >
           <h1 className="Mono">
             Pontuação: <span className="score">{score}</span> / {maxScore}
           </h1>

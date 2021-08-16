@@ -367,6 +367,7 @@ function AppStreamCam() {
           marginRight: 'auto',
           left: 0,
           right: 0,
+          top: '10%',
           textAlign: 'center',
           zIndex: 5,
           // width: 640,

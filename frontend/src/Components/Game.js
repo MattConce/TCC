@@ -519,7 +519,7 @@ function Game(props) {
           </div>
         </div>
       ) : gameFinished ? (
-        <div className="modal-content shadow">
+        <div className="modal-content shadow" style={{ height: '60%' }}>
           <h1 className="Mono">
             Pontuação: <span className="score">{score}</span> / {maxScore}
           </h1>

@@ -138,8 +138,8 @@ function AppStreamCam() {
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
 
-    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
-    // const response = await Axios.post('/api/upload/save', bodyFormData);
+    // const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
 
@@ -369,40 +369,46 @@ function AppStreamCam() {
           right: 0,
           textAlign: 'center',
           zIndex: 5,
-          width: 640,
-          height: 480,
+          // width: 640,
+          // height: 480,
+          width: window.screen.width / 3,
+          height: window.screen.height / 2.25,
         }}
       />
-      <canvas
-        id="videoCaptureCanvas-id"
-        key="videoCaptureCanvas"
-        ref={canvasRef}
-        style={
-          gameStarted && !gameFinished
-            ? {
-                background: 'transparent',
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                textAlign: 'center',
-                zIndex: 1,
-                width: 640,
-                height: 480,
-              }
-            : {
-                background: 'transparent',
-                position: 'absolute',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                left: 0,
-                right: 0,
-                textAlign: 'center',
-                zIndex: 5,
-                width: 640,
-                height: 480,
-              }
-        }
-      />
+      {/* <canvas */}
+      {/*   id="videoCaptureCanvas-id" */}
+      {/*   key="videoCaptureCanvas" */}
+      {/*   ref={canvasRef} */}
+      {/*   style={ */}
+      {/*     gameStarted && !gameFinished */}
+      {/*       ? { */}
+      {/*           background: 'transparent', */}
+      {/*           position: 'absolute', */}
+      {/*           left: 0, */}
+      {/*           right: 0, */}
+      {/*           textAlign: 'center', */}
+      {/*           zIndex: 1, */}
+      {/*           // width: 640, */}
+      {/*           // height: 480, */}
+      {/*           width: window.screen.width / 3, */}
+      {/*           height: window.screen.height / 2.25, */}
+      {/*         } */}
+      {/*       : { */}
+      {/*           background: 'transparent', */}
+      {/*           position: 'absolute', */}
+      {/*           marginLeft: 'auto', */}
+      {/*           marginRight: 'auto', */}
+      {/*           left: 0, */}
+      {/*           right: 0, */}
+      {/*           textAlign: 'center', */}
+      {/*           zIndex: 5, */}
+      {/*           // width: 640, */}
+      {/*           // height: 480, */}
+      {/*           width: window.screen.width / 3, */}
+      {/*           height: window.screen.height / 2.25, */}
+      {/*         } */}
+      {/*   } */}
+      {/* /> */}
       <FullScreen handle={screenFull} onChange={reportChange}>
         {gameStarted && !gameFinished ? (
           <Game

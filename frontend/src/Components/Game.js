@@ -450,31 +450,38 @@ function Game(props) {
               A bola seguinte sempre aparece na posição da caixa anterior.
             </li>
             <li>
-              Não tem problema erra o alvo, apenas faça a tarefa com atenção.
+              Não tem problema errar o alvo, apenas faça a tarefa com atenção.
             </li>
           </ol>
           <img
             src="/tutorial.png"
             alt="ball and box"
-            width="500"
-            height="400"
+            width="30%"
+            height="40%"
           />
           <button
             className="button-alt-2"
             style={{
               margin: 'auto',
-              fontSize: '20px',
-              width: '180px',
-              height: '70px',
+              fontSize: '50%',
+              width: '10%',
+              height: '8%',
             }}
             onClick={handleInitialDialog}
           >
             Começar treino
           </button>
+          <span></span>
         </div>
       ) : trainningFinished ? (
         <div className="modal-content shadow">
           <h1 className="Mono"> Você está pronto ?</h1>
+          <img
+            src="/tutorial.png"
+            alt="ball and box"
+            width="30%"
+            height="40%"
+          />
           <div
             style={{
               display: 'flex',
@@ -488,7 +495,7 @@ function Game(props) {
               className="button-alt-2"
               style={{
                 margin: 'auto',
-                fontSize: '14px',
+                fontSize: '50%',
                 width: '180px',
                 height: '70px',
               }}
@@ -500,7 +507,7 @@ function Game(props) {
               className="button-alt-2"
               style={{
                 margin: 'auto',
-                fontSize: '14px',
+                fontSize: '50%',
                 width: '180px',
                 height: '70px',
               }}
@@ -508,6 +515,7 @@ function Game(props) {
             >
               Começar coleta
             </button>
+            <span></span>
           </div>
         </div>
       ) : gameFinished ? (
@@ -515,9 +523,14 @@ function Game(props) {
           <h1 className="Mono">
             Pontuação: <span className="score">{score}</span> / {maxScore}
           </h1>
-          <button className="button-alt-2" onClick={handleInitialDialog}>
+          <button
+            className="button-alt-2"
+            style={{ width: '160px', height: '50px' }}
+            onClick={handleInitialDialog}
+          >
             Voltar
           </button>
+          <span></span>
         </div>
       ) : (
         <canvas

@@ -452,8 +452,8 @@ function AppStreamCam() {
                 style={{
                   margin: 'auto',
                   fontSize: '20px',
-                  width: '180px',
-                  height: '70px',
+                  width: '160px',
+                  height: '50px',
                 }}
                 onClick={handleButtonStart}
               >
@@ -466,8 +466,8 @@ function AppStreamCam() {
                   style={{
                     margin: 'auto',
                     fontSize: '20px',
-                    width: '180px',
-                    height: '70px',
+                    width: '160px',
+                    height: '50px',
                   }}
                   onClick={handleDownload}
                 >

@@ -9,6 +9,7 @@ function Game(props) {
   const [score, setScore] = useState(0);
   const [maxScore, setMaxScore] = useState('0');
   const [buffer, setBuffer] = useState([]);
+  const [timeInitGame, setInitTime] = useState('');
 
   // Annotations for trainning section
   let onTarget;
@@ -266,6 +267,7 @@ function Game(props) {
 
   const handleStartGame = () => {
     props.handleStartCaptureClick();
+    setInitTime(props.videoRef.currentTime);
     setTrainningFinished(false);
     setGameStarted(true);
     setReady(true);
@@ -339,7 +341,7 @@ function Game(props) {
         clearInterval(intervalId);
         if (cur >= positions.length) {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
-          const timeInit = props.videoRef.currentTime;
+          const timeInit = props.videoRef.currentTime - timeInitGame;
           // Set the score of the user
           setScore(fscore);
           const color = ball.color;
@@ -356,7 +358,7 @@ function Game(props) {
             ball.draw(ctx);
           }, 50);
           setTimeout(() => {
-            const timeEnd = props.videoRef.currentTime;
+            const timeEnd = props.videoRef.currentTime - timeInitGame;
             const time = { timestampInit: timeInit, timestampEnd: timeEnd };
             const data = { coord: coord, time: time };
             if (!trainningMode) setBuffer((prev) => prev.concat(data));
@@ -385,7 +387,7 @@ function Game(props) {
           }, 500);
         } else {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
-          const timeInit = props.videoRef.currentTime;
+          const timeInit = props.videoRef.currentTime - timeInitGame;
           const color = ball.color;
           const radius = ball.rad;
           let t = 0;
@@ -401,7 +403,7 @@ function Game(props) {
           }, 50);
           setTimeout(() => {
             // Save the data for the current target
-            const timeEnd = props.videoRef.currentTime;
+            const timeEnd = props.videoRef.currentTime - timeInitGame;
             const time = { timestampInit: timeInit, timestampEnd: timeEnd };
             const data = { coord: coord, time: time };
             if (!trainningMode) setBuffer((prev) => prev.concat(data));

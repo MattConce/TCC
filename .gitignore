@@ -10,6 +10,9 @@ node_modules
 
 /uploads
 
+*.mp4
+*.webm
+
 /.pnp
 .pnp.js
 

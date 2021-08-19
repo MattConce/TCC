@@ -364,7 +364,7 @@ function Game(props) {
             if (!trainningMode) setBuffer((prev) => prev.concat(data));
             clearInterval(id);
             setGameFinished(true);
-          }, 500);
+          }, 1000);
         } else if (trainningMode && cur >= 3) {
           trainningMode = false;
           const color = ball.color;
@@ -384,7 +384,7 @@ function Game(props) {
             clearInterval(id);
             setTrainningFinished(true);
             setReady(false);
-          }, 500);
+          }, 1000);
         } else {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
           const timeInit = props.videoRef.currentTime - timeInitGame;
@@ -423,7 +423,7 @@ function Game(props) {
             clearInterval(id);
             actionBlocked = false;
             gameStart();
-          }, 500);
+          }, 1000);
         }
       }
     }

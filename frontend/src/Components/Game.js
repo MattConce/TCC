@@ -536,10 +536,10 @@ function Game(props) {
           </h1>
           <button
             className="button-alt-2"
-            style={{ width: '160px', height: '50px' }}
+            style={{ width: '180px', height: '70px' }}
             onClick={handleInitialDialog}
           >
-            Voltar
+            Voltar e salvar
           </button>
           <span></span>
         </div>

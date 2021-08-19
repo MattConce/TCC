@@ -338,6 +338,9 @@ function Game(props) {
 
         clearInterval(intervalId);
         if (cur >= positions.length) {
+          const coord = { x: ball.pos[0], y: ball.pos[1] };
+          const timeInit = props.videoRef.currentTime;
+          // Set the score of the user
           setScore(fscore);
           const color = ball.color;
           const radius = ball.rad;
@@ -353,6 +356,10 @@ function Game(props) {
             ball.draw(ctx);
           }, 50);
           setTimeout(() => {
+            const timeEnd = props.videoRef.currentTime;
+            const time = { timestampInit: timeInit, timestampEnd: timeEnd };
+            const data = { coord: coord, time: time };
+            if (!trainningMode) setBuffer((prev) => prev.concat(data));
             clearInterval(id);
             setGameFinished(true);
           }, 500);

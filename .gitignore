@@ -8,6 +8,8 @@ node_modules
 
 /uploads/*.
 
+/uploads
+
 /.pnp
 .pnp.js
 

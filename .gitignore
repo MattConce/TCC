@@ -6,7 +6,7 @@ node_modules
 
 *.py
 
-/uploads/*.
+/uploads/*
 
 /uploads
 

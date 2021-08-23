@@ -76,7 +76,7 @@ def cut_selection_video(timestamps, video_name):
     for start, stop in timestamps:
         start_frame_count = fps * start
         stop_frame_count  = fps * stop
-        out = cv2.VideoWriter(f'{path}/uploads/cutting/{video_name}-{start}-{stop}.mp4', fourcc, fps, (width, height), True)
+        out = cv2.VideoWriter(f'{path}/uploads/cut-{video_name}-{start}-{stop}.mp4', fourcc, fps, (width, height), True)
         while cap.isOpened():
             success, image = cap.read()
             index += 1

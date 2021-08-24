@@ -7,6 +7,9 @@ node_modules
 
 /uploads/*
 
+/virtulenv-python
+/virtulenv-python/*
+
 /uploads
 
 *.mp4

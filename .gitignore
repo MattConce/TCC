@@ -7,8 +7,8 @@ node_modules
 
 /uploads/*
 
-/virtulenv-python
-/virtulenv-python/*
+/virtualenv-python
+/virtualenv-python/*
 
 /uploads
 

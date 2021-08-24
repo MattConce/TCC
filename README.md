@@ -15,10 +15,10 @@ npm start
 ## Running python script
 * will download all videos from gdrive
 ```js
-  python dataviz.py -m remote -g
+  python dataviz.py -g
 ```
 
-* will select the videos by timestamp and save it on directory uploads make sure to create an uploads dir
+* will select the videos by timestamp and save it on directory uploads
 ```js
-  python dataviz.py -m remote -t
+  python dataviz.py -t
 ```

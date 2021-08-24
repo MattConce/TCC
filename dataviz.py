@@ -13,6 +13,7 @@ import json
 import cv2
 import sys
 import io
+import os
 
 def run_facemesh(video_name):
     path = Path(__file__).parent.absolute()
@@ -22,7 +23,7 @@ def run_facemesh(video_name):
 
     drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
     # Load the video
-    cap = cv2.VideoCapture(f'{path}/uploads/{video_name}.mp4')
+    cap = cv2.VideoCapture(f'{path}/uploads/raw/{video_name}.mp4')
     # Get de codec code
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     # float `width`
@@ -32,7 +33,7 @@ def run_facemesh(video_name):
     # FPS of the original video
     fps = cap.get(cv2.CAP_PROP_FPS)
     # Prepere the out video
-    out = cv2.VideoWriter(f'{path}/uploads/facemesh-{video_name}.mp4', fourcc, fps, (width, height), True)
+    out = cv2.VideoWriter(f'{path}/uploads/facemesh/facemesh-{video_name}.mp4', fourcc, fps, (width, height), True)
     print(f'Running face mesh for {video_name}...')
 
     with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
@@ -61,7 +62,7 @@ def run_facemesh(video_name):
 
 def cut_selection_video(timestamps, video_name):
     path = Path(__file__).parent.absolute()
-    cap = cv2.VideoCapture(f'{path}/uploads/{video_name}.mp4')
+    cap = cv2.VideoCapture(f'{path}/uploads/raw/{video_name}.mp4')
     # Get de codec code
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     # float `width`
@@ -76,7 +77,7 @@ def cut_selection_video(timestamps, video_name):
     for start, stop in timestamps:
         start_frame_count = fps * start
         stop_frame_count  = fps * stop
-        out = cv2.VideoWriter(f'{path}/uploads/cut-{video_name}-{start}-{stop}.mp4', fourcc, fps, (width, height), True)
+        out = cv2.VideoWriter(f'{path}/uploads/cut/cut-{video_name}-{start}-{stop}.mp4', fourcc, fps, (width, height), True)
         while cap.isOpened():
             success, image = cap.read()
             index += 1
@@ -103,6 +104,28 @@ def main():
         sys.exit(1)
 
     path = Path(__file__).parent.absolute()
+
+    # Check if uploads dir exits
+    if not Path(f'{path}/uploads/').is_dir():
+        print('Uploads dir do not exists')
+        os.mkdir(Path(f'{path}/uploads'))
+        print('Creating uploads dir...')
+    # Check if raw dir exits
+    if not Path(f'{path}/uploads/raw').is_dir():
+        print('Raw dir do not exists')
+        os.mkdir(Path(f'{path}/uploads/raw'))
+        print('Creating raw uploads dir...')
+    # Check if cut dir exits
+    if not Path(f'{path}/uploads/cut').is_dir():
+        print('Cut dir do not exists')
+        os.mkdir(Path(f'{path}/uploads/cut'))
+        print('Creating cut uploads dir...')
+    # Check if facemesh dir exits
+    if not Path(f'{path}/uploads/facemesh').is_dir():
+        print('Facemesh dir do not exists')
+        os.mkdir(Path(f'{path}/uploads/facemesh'))
+        print('Creating facemesh uploads dir...')
+
 
     # Program's arguments
     MONGO = args.mongo
@@ -140,10 +163,10 @@ def main():
 
             if GDRIVE :
                 # Download video from gdrive
-                if not Path(f'{path}/uploads/{video_id}.webm').is_file():
+                if not Path(f'{path}/uploads/raw/{video_id}.webm').is_file():
                     print(f'Downloading video {i} from google drive...')
                     request = service.files().get_media(fileId=video_id)
-                    fh = io.FileIO(f'uploads/{video_id}.webm', "wb")
+                    fh = io.FileIO(f'uploads/raw/{video_id}.webm', "wb")
                     downloader = MediaIoBaseDownload(fh, request)
                     done = False
                     while done is False:
@@ -154,7 +177,7 @@ def main():
                 # Converting video from webm to mp4
                 if not Path(f'{path}/uploads/{video_id}.mp4').is_file():
                     print(f'Converting video {i} to mp4...')
-                    subprocess.run(f'ffmpeg -i uploads/{video_id}.webm uploads/{video_id}.mp4',
+                    subprocess.run(f'ffmpeg -i uploads/raw/{video_id}.webm uploads/raw/{video_id}.mp4',
                                    shell=True,
                                    stdout=subprocess.DEVNULL,
                                    stderr=subprocess.STDOUT)
@@ -175,16 +198,15 @@ def main():
 
     if TIMESTAMP:
         for i, video in enumerate(videos):
-            if video == '10ZQM6OCyjfV1nUI1kbn3gCktm2iQk8Tr':
-                print(video)
-                cut_selection_video(list_timestamp[i], video)
+            print(f'Cutting video {video}...')
+            cut_selection_video(list_timestamp[i], video)
 
     if FACEMESH:
         # Apply the facemesh model
         print('Running facemesh model...')
         for video_id in videos:
             print(f'video {video_id}')
-            if not Path(f'{path}/uploads/facemesh-{video_id}.mp4').is_file():
+            if not Path(f'{path}/uploads/facemesh/facemesh-{video_id}.mp4').is_file():
                 run_facemesh(video_id)
             else:
                 print('Facemesh already applied to the video')

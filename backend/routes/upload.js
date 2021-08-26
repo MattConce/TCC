@@ -86,28 +86,6 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
   } catch (err) {
     res.status(404).send(err.message);
   }
-  // const path = `uploads/${name}.webm`;
-  // fs.appendFile(path, encoded, 'base64', (err) => {
-  //   if (err) return console.log(err);
-  //   let media = {
-  //     mimeType: 'video/webm',
-  //     body: fs.createReadStream(path),
-  //   };
-  //   drive.files.create(
-  //     {
-  //       resource: fileMetadata,
-  //       media: media,
-  //       fields: 'id',
-  //     },
-  //     (err, file) => {
-  //       if (err) {
-  //         console.error(err);
-  //       } else {
-  //         res.send(file.data.id);
-  //       }
-  //     }
-  //   );
-  // });
 });
 
 router.post('/', async (req, res) => {

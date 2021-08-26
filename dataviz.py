@@ -138,7 +138,7 @@ def main():
     db_name = 'eye-tracker'
     collection_name = 'datas'
     # Connect to mongoDB Atles cluster
-    client = 'eye-tracker' if MONGO == 'local' else MongoClient(config['MONGO_URL'])
+    client = MongoClient(config['MONGO_URL'])
     # Get the collection from the eye-tracker database
     collection = client[db_name]
     # Using googleapi to download videos from gdrive

@@ -11,7 +11,6 @@ function Game(props) {
   const [buffer, setBuffer] = useState([]);
   const [timeInitGame, setInitTime] = useState('');
 
-  // Annotations for trainning section
   let onTarget;
   let box;
   let ball;
@@ -28,9 +27,8 @@ function Game(props) {
   let actionBlocked = false;
 
   let trainningMode = false;
-  let trainningTargets = 0;
 
-  const [dimensions, setDimensions] = useState({
+const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
     height: window.screen.height,
   });
@@ -50,7 +48,6 @@ function Game(props) {
       fscore = 0;
       actionBlocked = false;
       positions = [];
-      trainningTargets = 0;
 
       // Get context
       const ctx = canvas.getContext('2d');
@@ -88,7 +85,6 @@ function Game(props) {
       );
 
       cur++;
-      trainningTargets++;
       // Drawn a ball from positions vector and make sure it's not the same as box position
       let init = [-1, -1];
       do {
@@ -132,7 +128,6 @@ function Game(props) {
         let y = positions[cur][1];
         ball.num = trainningMode ? 3 - cur : 35 - cur;
         cur++;
-        trainningTargets++;
         box = new Box(x, y, box.w, box.h);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         box.draw(ctx);
@@ -412,7 +407,6 @@ function Game(props) {
             let y = positions[cur][1];
             ball.num = trainningMode ? 3 - cur : 35 - cur;
             cur++;
-            trainningTargets++;
             box = new Box(x, y, box.w, box.h);
             ball.rad = radius;
             onTarget = false;

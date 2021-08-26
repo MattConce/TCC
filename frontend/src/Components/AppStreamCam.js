@@ -170,8 +170,8 @@ function AppStreamCam() {
         ref={webcamRef}
         audio={false}
         videoConstraints={{
-          width: { ideal: 4096 },
-          height: { ideal: 2160 },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
         }}
         style={{
           position: 'absolute',

@@ -14,7 +14,7 @@ function AppStreamCam() {
   const [gameFinished, setGameFinished] = useState(false);
   const [buffer, setBuffer] = useState([]);
   const [email, setEmail] = useState('');
-  const [cameraOn, setCameraOn] = useState('')
+  const [cameraOn, setCameraOn] = useState('');
 
   const screenFull = useFullScreenHandle();
 
@@ -61,20 +61,19 @@ function AppStreamCam() {
       const blob = new Blob(recordedChunks, {
         type: 'video/webm',
       });
-      let canvas = canvasRef.current;
       let gpu = 'null';
-      if (canvas) {
-        let webgl = canvas.getContext('webgl2');
-        let debugInfo = webgl.getExtension('webgl_debug_renderer_info');
-        gpu = webgl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-        console.log('gpu: ', gpu);
-      }
+      // if (canvas) {
+      //   let webgl = canvas.getContext('webgl2');
+      //   let debugInfo = webgl.getExtension('webgl_debug_renderer_info');
+      //   gpu = webgl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+      //   console.log('gpu: ', gpu);
+      // }
       let osType = 'null';
       if (navigator.appVersion.indexOf('Win') !== -1) osType = 'Windows OS';
       if (navigator.appVersion.indexOf('Mac') !== -1) osType = 'MacOS';
       if (navigator.appVersion.indexOf('X11') !== -1) osType = 'UNIX OS';
       if (navigator.appVersion.indexOf('Linux') !== -1) osType = 'Linux OS';
-      console.log('OS:', osType);
+      setRecordedChunks([]);
       uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
         saveTrainingData({
           email: email,
@@ -113,7 +112,6 @@ function AppStreamCam() {
     const video = await blobToBase64(file);
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
-
     const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
     // const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
@@ -187,10 +185,10 @@ function AppStreamCam() {
           width: 640,
           height: 480,
         }}
-        onUserMediaError={()=> {
-          alert('Webcam precisa estar ligada, dê permissão antes de continuar')
+        onUserMediaError={() => {
+          alert('Webcam precisa estar ligada, dê permissão antes de continuar');
         }}
-        onUserMedia={()=> {
+        onUserMedia={() => {
           setCameraOn(true);
         }}
       />
@@ -211,14 +209,17 @@ function AppStreamCam() {
               flexDirection: 'column',
             }}
           >
-            {cameraOn ? 
-            <div></div>
-            :
-            <div>
-              <h3 style={{color: 'Red'}}> Sua câmera não está ligada, dê permissão antes de continuar</h3>
-            </div>
-            }
-            
+            {cameraOn ? (
+              <div></div>
+            ) : (
+              <div>
+                <h3 style={{ color: 'Red' }}>
+                  {' '}
+                  Sua câmera não está ligada, dê permissão antes de continuar
+                </h3>
+              </div>
+            )}
+
             <form
               style={{
                 position: 'absolute',
@@ -259,20 +260,20 @@ function AppStreamCam() {
                 {' '}
                 Ir para coleta
               </button>
-              {recordedChunks.length > 0 && (
-                <button
-                  className="button alt"
-                  style={{
-                    margin: 'auto',
-                    fontSize: '20px',
-                    width: '160px',
-                    height: '50px',
-                  }}
-                  onClick={handleDownload}
-                >
-                  Download
-                </button>
-              )}
+              {/* {recordedChunks.length > 0 && ( */}
+              {/*   <button */}
+              {/*     className="button alt" */}
+              {/*     style={{ */}
+              {/*       margin: 'auto', */}
+              {/*       fontSize: '20px', */}
+              {/*       width: '160px', */}
+              {/*       height: '50px', */}
+              {/*     }} */}
+              {/*     onClick={handleDownload} */}
+              {/*   > */}
+              {/*     Download */}
+              {/*   </button> */}
+              {/* )} */}
             </div>
           </div>
         )}

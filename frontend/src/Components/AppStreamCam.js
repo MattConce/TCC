@@ -211,6 +211,14 @@ function AppStreamCam() {
               flexDirection: 'column',
             }}
           >
+            {cameraOn ? 
+            <div></div>
+            :
+            <div>
+              <h3 style={{color: 'Red'}}> Sua câmera não está ligada, dê permissão antes de continuar</h3>
+            </div>
+            }
+            
             <form
               style={{
                 position: 'absolute',

@@ -23,6 +23,7 @@ Queue.process('saveVideo', async (job, done) => {
   let { name, kueId, video, email } = job.data;
   console.log('name: ', name);
   console.log('name: ', email);
+  if (!video) done(new Error('Empty video'));
   let encoded = video.split(';base64,').pop();
   let buffer = new Buffer.from(encoded, 'base64');
   const Readable = require('stream').Readable;

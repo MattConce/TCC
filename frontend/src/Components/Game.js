@@ -28,7 +28,7 @@ function Game(props) {
 
   let trainningMode = false;
 
-  const [dimensions, setDimensions] = useState({
+const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
     height: window.screen.height,
   });
@@ -278,7 +278,6 @@ function Game(props) {
     if (gameFinished) {
       props.onChange(gameFinished);
       props.sendBuffer(buffer);
-      setBuffer([]);
     } else {
       setReady(true);
     }

@@ -20,15 +20,12 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: 'v3', auth });
 
 Queue.process('saveVideo', async (job, done) => {
-  let { name, kueId, video, email } = job.data;
-  let encoded = video.split(';base64,').pop();
+  let { name, kueId, encoded, email } = job.data;
   let buffer = new Buffer.from(encoded, 'base64');
   const Readable = require('stream').Readable;
   let bs = new Readable();
   bs.push(buffer);
   bs.push(null);
-  console.log('name: ', name);
-  console.log('name: ', email);
   try {
     let fileMetadata = {
       name: name,
@@ -45,15 +42,15 @@ Queue.process('saveVideo', async (job, done) => {
         fields: 'id',
       },
       async (err, file) => {
-        try {
+        if (err) {
+          console.log('error', err);
+        } else {
           let query = { email: email, 'stream.kueId': kueId };
           let update = {
             $set: { 'stream.$.video': file.data.id },
           };
           let newData = await Data.updateOne(query, update);
           done();
-        } catch (err) {
-          consele.log('error: ', err);
         }
       }
     );

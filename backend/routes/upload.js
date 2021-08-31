@@ -4,16 +4,16 @@ import fs from 'fs';
 import Data from '../models/dataModel';
 import Queue from './job';
 
-// const { google } = require('googleapis');
+const { google } = require('googleapis');
 
-// const KEYFILEPATH = './credentials.json';
-// const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const KEYFILEPATH = './credentials.json';
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
 
-// const auth = new google.auth.GoogleAuth({
-//   keyFile: KEYFILEPATH,
-//   scopes: SCOPES,
-// });
-// const drive = google.drive({ version: 'v3', auth });
+const auth = new google.auth.GoogleAuth({
+  keyFile: KEYFILEPATH,
+  scopes: SCOPES,
+});
+const drive = google.drive({ version: 'v3', auth });
 
 const upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
 
@@ -52,18 +52,17 @@ router.post('/save', upload.single('video'), async (req, res) => {
 
 router.post('/save/gdrive', upload.array('video'), async (req, res) => {
   const { video, name, email } = req.body;
+  let encoded = video.split(';base64,').pop();
   const kueId = makeid(35);
   const job = Queue.create('saveVideo', {
     name: name,
     kueId: kueId,
-    video: video,
+    encoded: encoded,
     email: email,
-  })
-    .attempts(5)
-    .save((err) => {
-      if (!err) console.log('jobId:', job.id);
-      else console.log('error: ', err);
-    });
+  }).save((err) => {
+    if (!err) console.log(job.id);
+    else console.log('error: ', err);
+  });
   res.status(200).send(kueId);
   // let buffer = new Buffer.from(encoded, 'base64');
   // encoded = null;

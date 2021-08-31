@@ -60,61 +60,59 @@ router.post('/save', upload.single('video'), async (req, res) => {
 });
 
 router.post('/save/gdrive', upload.array('video'), async (req, res) => {
-  // const { video, name, email } = req.body;
-  // const kueId = makeid(35);
-  // const job = Queue.create('saveVideo', {
-  //   name: name,
-  //   kueId: kueId,
-  //   video: video,
-  //   email: email,
-  // })
-  //   .attempts(5)
-  //   .save((err) => {
-  //     if (!err) {
-  //       console.log('jobId:', job.id);
-  //       res.status(200).send(kueId);
-  //     } else {
-  //       console.log('error: ', err);
-  //       res.status(500).send(err);
-  //     }
-  //   });
-  const { video, name } = req.body;
-  let encoded = video.split(';base64,').pop();
-  let buffer = new Buffer.from(encoded, 'base64');
-  encoded = null;
-  const Readable = require('stream').Readable;
-  let bs = new Readable();
-  bs.push(buffer);
-  bs.push(null);
-  buffer = null;
-  console.log('create buffer');
-  try {
-    cosole.log('trying upload into drive');
-    let fileMetadata = {
-      name: name,
-      parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
-    };
-    let media = {
-      mimeType: 'video/webm',
-      body: bs,
-    };
-    drive.files.create(
-      {
-        resource: fileMetadata,
-        media: media,
-        fields: 'id',
-      },
-      (err, file) => {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.send(file.data.id);
-        }
+  const { video, name, email } = req.body;
+  const kueId = makeid(35);
+  const job = Queue.create('saveVideo', {
+    name: name,
+    kueId: kueId,
+    video: video,
+    email: email,
+  })
+    .attempts(5)
+    .save((err) => {
+      if (!err) {
+        console.log('jobId:', job.id);
+        res.status(200).send(kueId);
+      } else {
+        console.log('error: ', err);
+        res.status(500).send(err);
       }
-    );
-  } catch (err) {
-    res.status(404).send(err.message);
-  }
+    });
+  // let buffer = new Buffer.from(encoded, 'base64');
+  // encoded = null;
+  // const Readable = require('stream').Readable;
+  // let bs = new Readable();
+  // bs.push(buffer);
+  // bs.push(null);
+  // buffer = null;
+  // console.log('create buffer');
+  // try {
+  //   cosole.log('trying upload into drive');
+  //   let fileMetadata = {
+  //     name: name,
+  //     parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
+  //   };
+  //   let media = {
+  //     mimeType: 'video/webm',
+  //     body: bs,
+  //   };
+  //   drive.files.create(
+  //     {
+  //       resource: fileMetadata,
+  //       media: media,
+  //       fields: 'id',
+  //     },
+  //     (err, file) => {
+  //       if (err) {
+  //         res.status(500).send(err);
+  //       } else {
+  //         res.send(file.data.id);
+  //       }
+  //     }
+  //   );
+  // } catch (err) {
+  //   res.status(404).send(err.message);
+  // }
 });
 
 router.post('/db', async (req, res) => {

@@ -5,6 +5,9 @@ import Data from '../models/dataModel';
 
 const { google } = require('googleapis');
 
+const sharp = require('sharp');
+sharp.cache(false);
+
 const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 
@@ -50,21 +53,17 @@ router.post('/save', upload.single('video'), async (req, res) => {
 });
 
 router.post('/save/gdrive', upload.array('video'), async (req, res) => {
-  console.log('here post');
   const { video } = req.body;
   const { name } = req.body;
-  let encoded = video.split(';base64,').pop();
+  const encoded = video.split(';base64,').pop();
 
-  let buffer = new Buffer.from(encoded, 'base64');
-  encoded = null;
-  const Readable = require('stream').Readable;
-  let bs = new Readable();
+  const buffer = new Buffer.from(encoded, 'base64');
+  var Readable = require('stream').Readable;
+  var bs = new Readable();
   bs.push(buffer);
   bs.push(null);
-  buffer = null;
-  console.log('create buffer');
+
   try {
-    cosole.log('trying upload into drive');
     let fileMetadata = {
       name: name,
       parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],

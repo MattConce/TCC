@@ -335,7 +335,7 @@ function Game(props) {
         if (!trainningMode) fscore++;
 
         clearInterval(intervalId);
-        if (cur >= positions.length) {
+        if (cur >= positions.length || cur > 4) {
           const coord = { x: ball.pos[0], y: ball.pos[1] };
           const timeInit = props.videoRef.currentTime - timeInitGame;
           // Set the score of the user

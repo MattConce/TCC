@@ -90,7 +90,7 @@ function AppStreamCam() {
   }, [recordedChunks]);
 
   const saveTrainingData = (trainData) => {
-    Axios.post('/api/upload/db', trainData)
+    Axios.post('/api/upload', trainData)
       .then((response) => {
         console.log('ok');
       })
@@ -112,7 +112,6 @@ function AppStreamCam() {
     const video = await blobToBase64(file);
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
-    bodyFormData.append('email', email);
     const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
     // const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;

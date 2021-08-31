@@ -70,10 +70,14 @@ router.post('/save/gdrive', upload.array('video'), async (req, res) => {
   })
     .attempts(5)
     .save((err) => {
-      if (!err) console.log('jobId:', job.id);
-      else console.log('error: ', err);
+      if (!err) {
+        console.log('jobId:', job.id);
+        res.status(200).send(kueId);
+      } else {
+        console.log('error: ', err);
+        res.status(500).send(err);
+      }
     });
-  res.status(200).send(kueId);
   // let buffer = new Buffer.from(encoded, 'base64');
   // encoded = null;
   // const Readable = require('stream').Readable;

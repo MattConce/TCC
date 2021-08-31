@@ -2,7 +2,6 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import Data from '../models/dataModel';
-import Queue from './job';
 
 const { google } = require('googleapis');
 
@@ -51,114 +50,45 @@ router.post('/save', upload.single('video'), async (req, res) => {
 });
 
 router.post('/save/gdrive', upload.array('video'), async (req, res) => {
-  const { video, name, email } = req.body;
+  console.log('here post');
+  const { video } = req.body;
+  const { name } = req.body;
   let encoded = video.split(';base64,').pop();
-  const kueId = makeid(35);
-  const job = Queue.create('saveVideo', {
-    name: name,
-    kueId: kueId,
-    encoded: encoded,
-    email: email,
-  }).save((err) => {
-    if (!err) console.log(job.id);
-    else console.log('error: ', err);
-  });
-  res.status(200).send(kueId);
-  // let buffer = new Buffer.from(encoded, 'base64');
-  // encoded = null;
-  // const Readable = require('stream').Readable;
-  // let bs = new Readable();
-  // bs.push(buffer);
-  // bs.push(null);
-  // buffer = null;
-  // console.log('create buffer');
-  // try {
-  //   cosole.log('trying upload into drive');
-  //   let fileMetadata = {
-  //     name: name,
-  //     parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
-  //   };
-  //   let media = {
-  //     mimeType: 'video/webm',
-  //     body: bs,
-  //   };
-  //   drive.files.create(
-  //     {
-  //       resource: fileMetadata,
-  //       media: media,
-  //       fields: 'id',
-  //     },
-  //     (err, file) => {
-  //       if (err) {
-  //         res.status(500).send(err);
-  //       } else {
-  //         res.send(file.data.id);
-  //       }
-  //     }
-  //   );
-  // } catch (err) {
-  //   res.status(404).send(err.message);
-  // }
-});
 
-router.post('/db', async (req, res) => {
-  const buffer = req.body.info;
-  let infoArray = [];
-  for (let b of buffer) {
-    const info = {
-      x: b.coord.x,
-      y: b.coord.y,
-      timestampInit: b.time.timestampInit,
-      timestampEnd: b.time.timestampEnd,
+  let buffer = new Buffer.from(encoded, 'base64');
+  encoded = null;
+  const Readable = require('stream').Readable;
+  let bs = new Readable();
+  bs.push(buffer);
+  bs.push(null);
+  buffer = null;
+  console.log('create buffer');
+  try {
+    cosole.log('trying upload into drive');
+    let fileMetadata = {
+      name: name,
+      parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
     };
-    infoArray.push(info);
-  }
-  const hasDoc = await Data.countDocuments({
-    email: req.body.email,
-    stream: { kueId: req.body.kueId },
-  });
-  if (hasDoc > 0) {
-    let query = { email: req.body.email, stream: { kueId: req.body.kueId } };
-    let update = {
-      email: req.body.email,
-      $set: {
-        stream: {
-          os: req.body.os,
-          resolution: req.body.resolution,
-          gpu: req.body.gpu,
-          info: infoArray,
-        },
+    let media = {
+      mimeType: 'video/webm',
+      body: bs,
+    };
+    drive.files.create(
+      {
+        resource: fileMetadata,
+        media: media,
+        fields: 'id',
       },
-    };
-    let options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    let newData = await Data.findOneAndUpdate(query, update, options);
-    if (newData) {
-      return res
-        .status(201)
-        .send({ message: 'New Data Created', data: newData });
-    }
-    return res.status(500).send({ message: ' Error in Creating Data.' });
-  } else {
-    let streamObj = {
-      kueId: req.body.kueId,
-      os: req.body.os,
-      resolution: req.body.resolution,
-      gpu: req.body.gpu,
-      info: infoArray,
-    };
-    let query = { email: req.body.email };
-    let update = {
-      email: req.body.email,
-      $push: { stream: streamObj },
-    };
-    let options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    let newData = await Data.findOneAndUpdate(query, update, options);
-    if (newData) {
-      return res
-        .status(201)
-        .send({ message: 'New Data Created', data: newData });
-    }
-    return res.status(500).send({ message: ' Error in Creating Data.' });
+      (err, file) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send(file.data.id);
+        }
+      }
+    );
+  } catch (err) {
+    res.status(404).send(err.message);
   }
 });
 
@@ -195,16 +125,5 @@ router.post('/', async (req, res) => {
   }
   return res.status(500).send({ message: ' Error in Creating Data.' });
 });
-
-function makeid(length) {
-  let result = '';
-  let characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
 
 export default router;

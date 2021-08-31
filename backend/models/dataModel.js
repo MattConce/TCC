@@ -8,7 +8,6 @@ const infoSchema = mongoose.Schema({
 });
 
 const videoSchema = mongoose.Schema({
-  kueId: { type: String },
   video: { type: String },
   os: { type: String },
   resolution: { type: String },

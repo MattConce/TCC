@@ -3,9 +3,12 @@ import multer from 'multer';
 import fs from 'fs';
 import Data from '../models/dataModel';
 // import Queue from './job';
+import dotenv from 'dotenv';
+dotenv.config();
 
 import kue from 'kue';
 
+let REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const Queue = kue.createQueue({
   redis: REDIS_URL,
 });

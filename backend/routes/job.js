@@ -20,9 +20,9 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: 'v3', auth });
 
 Queue.process('saveVideo', async (job, done) => {
-  let { name, kueId, video, email } = job.data;
   console.log('name: ', name);
   console.log('name: ', email);
+  let { name, kueId, video, email } = job.data;
   let encoded = video.split(';base64,').pop();
   let buffer = new Buffer.from(encoded, 'base64');
   const Readable = require('stream').Readable;

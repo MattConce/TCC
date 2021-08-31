@@ -112,8 +112,8 @@ function AppStreamCam() {
     const video = await blobToBase64(file);
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
-    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
-    // const response = await Axios.post('/api/upload/save', bodyFormData);
+    // const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
 

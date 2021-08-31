@@ -1,1 +1,1 @@
-web: node --optimize_for_size dist/server.js
+web: node --optimize_for_size --gc_interval=100 dist/server.js

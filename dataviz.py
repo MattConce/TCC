@@ -9,11 +9,11 @@ from pathlib import Path
 import mediapipe as mp
 import subprocess
 import argparse
+import json
 import cv2
 import sys
 import io
 import os
-
 
 def run_facemesh(video_name):
     path = Path(__file__).parent.absolute()
@@ -27,18 +27,16 @@ def run_facemesh(video_name):
     # Get de codec code
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     # float `width`
-    width = int(cap.get(3))
+    width  = int(cap.get(3))
     # float `height`
     height = int(cap.get(4))
     # FPS of the original video
     fps = cap.get(cv2.CAP_PROP_FPS)
     # Prepere the out video
-    out = cv2.VideoWriter(f'{path}/uploads/facemesh/facemesh-{video_name}.mp4',
-                          fourcc, fps, (width, height), True)
+    out = cv2.VideoWriter(f'{path}/uploads/facemesh/facemesh-{video_name}.mp4', fourcc, fps, (width, height), True)
     print(f'Running face mesh for {video_name}...')
 
-    with mp_face_mesh.FaceMesh(min_detection_confidence=0.5,
-                               min_tracking_confidence=0.5) as face_mesh:
+    with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
         while cap.isOpened():
             success, image = cap.read()
             if not success or image is None:
@@ -68,24 +66,24 @@ def cut_selection_video(timestamps, video_name):
     # Get de codec code
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     # float `width`
-    width = int(cap.get(3))
+    width  = int(cap.get(3))
     # float `height`
     height = int(cap.get(4))
     # FPS of the original video
     fps = cap.get(cv2.CAP_PROP_FPS)
     # Prepere the out video
     index = 0
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     for start, stop in timestamps:
         start_frame_count = fps * start
-        stop_frame_count = fps * stop
-        out = cv2.VideoWriter(f'{path}/uploads/cut/cut-{video_name}-{start}-{stop}.mp4',
-                              fourcc, fps, (width, height), True)
+        stop_frame_count  = fps * stop
+        out = cv2.VideoWriter(f'{path}/uploads/cut/cut-{video_name}-{start}-{stop}.mp4', fourcc, fps, (width, height), True)
         while cap.isOpened():
             success, image = cap.read()
             index += 1
             if not success or index > stop_frame_count:
                 break
-            if start_frame_count <= index < stop_frame_count:
+            if start_frame_count <= index < stop_frame_count: 
                 out.write(image)
         out.release()
     cap.release()
@@ -93,18 +91,17 @@ def cut_selection_video(timestamps, video_name):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('-m', '--mongo', required=False,
-                    help='Connect to mongoDB and get collections, \
-                    values should be local or remote, default=remote.\
-                    Exemple: python dataviz.py -m remote')
-    ap.add_argument('-g', '--gdrive', required=False, action='store_true', help='download images from gdrive')
-    ap.add_argument('-f', '--facemesh', required=False, action='store_true', help='Apply facemesh model to the videos')
+    ap.add_argument('-m', '--mongo', required=False, help = 'Connect to mongoDB and get collections, \
+                    values should be local or remote, default=remote. Exemple: python dataviz.py -m remote')
+    ap.add_argument('-g', '--gdrive', required=False, action='store_true', help = 'download images from gdrive')
+    ap.add_argument('-f', '--facemesh', required=False, action='store_true',help = 'Apply facemesh model to the videos')
     ap.add_argument('-t', '--timestamp', required=False, action='store_true', help='Cutting the video into chunks according to timestamp')
  
     args = ap.parse_args()
 
     if len(sys.argv) == 1:
         ap.print_help()
+        sys.exit(1)
 
     path = Path(__file__).parent.absolute()
 
@@ -129,6 +126,8 @@ def main():
         os.mkdir(Path(f'{path}/uploads/facemesh'))
         print('Creating facemesh uploads dir...')
 
+
+    # Program's arguments
     MONGO = args.mongo
     GDRIVE = args.gdrive
     FACEMESH = args.facemesh
@@ -143,7 +142,7 @@ def main():
     # Get the collection from the eye-tracker database
     collection = client[db_name]
     # Using googleapi to download videos from gdrive
-    if GDRIVE:
+    if GDRIVE :
         scope = ['https://www.googleapis.com/auth/drive']
         credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
         service = build('drive', 'v3', credentials=credentials)
@@ -162,7 +161,7 @@ def main():
             positions = []
             timestamp = []
 
-            if GDRIVE:
+            if GDRIVE :
                 # Download video from gdrive
                 if not Path(f'{path}/uploads/raw/{video_id}.webm').is_file():
                     print(f'Downloading video {i} from google drive...')

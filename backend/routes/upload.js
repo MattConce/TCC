@@ -5,9 +5,6 @@ import Data from '../models/dataModel';
 
 const { google } = require('googleapis');
 
-const sharp = require('sharp');
-sharp.cache(false);
-
 const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 
@@ -52,7 +49,7 @@ router.post('/save', upload.single('video'), async (req, res) => {
   }
 });
 
-router.post('/save/gdrive', upload.array('video'), async (req, res) => {
+router.post('/save/gdrive', upload.single('video'), async (req, res) => {
   const { video } = req.body;
   const { name } = req.body;
   const encoded = video.split(';base64,').pop();

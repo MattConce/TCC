@@ -62,6 +62,7 @@ router.post('/save', upload.single('video'), async (req, res) => {
 router.post('/save/gdrive', upload.array('video'), async (req, res) => {
   const { video, name, email } = req.body;
   const kueId = makeid(35);
+  console.log('video: ', video);
   const job = Queue.create('saveVideo', {
     name: name,
     kueId: kueId,

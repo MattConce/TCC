@@ -20,6 +20,8 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: 'v3', auth });
 
 Queue.process('saveVideo', async (job, done) => {
+  console.log('name: ', name);
+  console.log('name: ', email);
   let { name, kueId, video, email } = job.data;
   let encoded = video.split(';base64,').pop();
   let buffer = new Buffer.from(encoded, 'base64');
@@ -27,8 +29,6 @@ Queue.process('saveVideo', async (job, done) => {
   let bs = new Readable();
   bs.push(buffer);
   bs.push(null);
-  console.log('name: ', name);
-  console.log('name: ', email);
   try {
     let fileMetadata = {
       name: name,

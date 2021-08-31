@@ -2,7 +2,13 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import Data from '../models/dataModel';
-import Queue from './job';
+// import Queue from './job';
+
+import kue from 'kue';
+
+const Queue = kue.createQueue({
+  redis: REDIS_URL,
+});
 
 // const { google } = require('googleapis');
 
@@ -53,6 +59,7 @@ router.post('/save', upload.single('video'), async (req, res) => {
 router.post('/save/gdrive', upload.array('video'), async (req, res) => {
   const { video, name, email } = req.body;
   const kueId = makeid(35);
+  console.log('video: ', video);
   const job = Queue.create('saveVideo', {
     name: name,
     kueId: kueId,

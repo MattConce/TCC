@@ -102,6 +102,8 @@ function AppStreamCam() {
       })
       .catch((err) => {
         console.log(err);
+        setActive(false);
+        alert('Ocorreu um erro!');
       });
   };
 

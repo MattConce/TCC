@@ -4,7 +4,7 @@
   "description": "Low cost webcam based eye tracker",
   "main": "server.js",
   "scripts": {
-    "start": "node --max-old-space-restart=512 dist/server.js",
+    "start": "node dist/server.js",
     "dev": "nodemon --exec babel-node --max-old-space-restart=512 backend/server.js",
     "build": "rm -rf dist && babel backend -d dist",
     "heroku-postbuild": "npm run build && cd frontend && npm install && npm run build"

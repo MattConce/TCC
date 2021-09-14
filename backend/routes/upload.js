@@ -4,6 +4,7 @@ import fs from 'fs';
 import Data from '../models/dataModel';
 
 const { google } = require('googleapis');
+const timeout = require('connect-timeout');
 
 const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
@@ -12,9 +13,8 @@ const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
   scopes: SCOPES,
 });
-const drive = google.drive({ version: 'v3', auth });
 
-const upload = multer({ limits: { fieldSize: 25 * 1024 * 1024 } });
+const upload = multer({ limits: { fieldSize: 1024 * 1024 * 1024 } });
 
 // Express routes
 const router = express.Router();
@@ -49,18 +49,23 @@ router.post('/save', upload.single('video'), async (req, res) => {
   }
 });
 
-router.post('/save/gdrive', upload.single('video'), async (req, res) => {
-  const { video } = req.body;
-  const { name } = req.body;
-  const encoded = video.split(';base64,').pop();
+router.post(
+  '/save/gdrive',
+  timeout('30s'),
+  upload.single('video'),
+  async (req, res) => {
+    const { video } = req.body;
+    const { name } = req.body;
+    const encoded = video.split(';base64,').pop();
 
-  const buffer = new Buffer.from(encoded, 'base64');
-  var Readable = require('stream').Readable;
-  var bs = new Readable();
-  bs.push(buffer);
-  bs.push(null);
+    const drive = google.drive({ version: 'v3', auth });
 
-  try {
+    const buffer = new Buffer.from(encoded, 'base64');
+    const Readable = require('stream').Readable;
+    let bs = new Readable();
+    bs.push(buffer);
+    bs.push(null);
+
     let fileMetadata = {
       name: name,
       parents: ['16yRtSqkszRWPMfGnhJ12NQWzWx9f4oWW'],
@@ -69,24 +74,23 @@ router.post('/save/gdrive', upload.single('video'), async (req, res) => {
       mimeType: 'video/webm',
       body: bs,
     };
-    drive.files.create(
-      {
-        resource: fileMetadata,
-        media: media,
-        fields: 'id',
-      },
-      (err, file) => {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.send(file.data.id);
-        }
-      }
-    );
-  } catch (err) {
-    res.status(404).send(err.message);
+
+    let response = await drive.files.create({
+      resource: fileMetadata,
+      media: media,
+      fields: 'id',
+    });
+
+    switch (response.status) {
+      case 200:
+        res.send(response.data.id);
+        break;
+      default:
+        console.log('Error: ', response.errors);
+        break;
+    }
   }
-});
+);
 
 router.post('/', async (req, res) => {
   const buffer = req.body.info;

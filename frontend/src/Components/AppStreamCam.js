@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
+import LoadingOverlay from 'react-loading-overlay';
 import Webcam from 'react-webcam';
 import Game from './Game';
 import Axios from 'axios';
@@ -14,7 +15,9 @@ function AppStreamCam() {
   const [gameFinished, setGameFinished] = useState(false);
   const [buffer, setBuffer] = useState([]);
   const [email, setEmail] = useState('');
-  const [cameraOn, setCameraOn] = useState('')
+  const [cameraOn, setCameraOn] = useState('');
+  const [isActive, setActive] = useState(false);
+  const [saved, setSaved] = useState('idle');
 
   const screenFull = useFullScreenHandle();
 
@@ -56,7 +59,7 @@ function AppStreamCam() {
     setCapturing(false);
   }, [mediaRecorderRef, webcamRef, setCapturing]);
 
-  const saveDataOnServer = useCallback(() => {
+  const saveDataOnServer = () => {
     if (recordedChunks.length) {
       const blob = new Blob(recordedChunks, {
         type: 'video/webm',
@@ -88,12 +91,14 @@ function AppStreamCam() {
     } else {
       console.log('error');
     }
-  }, [recordedChunks]);
+  };
 
   const saveTrainingData = (trainData) => {
     Axios.post('/api/upload', trainData)
       .then((response) => {
         console.log('ok');
+        setActive(false);
+        setSaved('saved');
       })
       .catch((err) => {
         console.log(err);
@@ -114,7 +119,9 @@ function AppStreamCam() {
     bodyFormData.append('video', video);
     bodyFormData.append('name', name);
 
-    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData);
+    const response = await Axios.post('/api/upload/save/gdrive', bodyFormData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     // const response = await Axios.post('/api/upload/save', bodyFormData);
     return response.data;
   };
@@ -124,6 +131,7 @@ function AppStreamCam() {
     setGameStarted(true);
     setGameFinished(false);
     handleFullScreen();
+    setSaved('idle');
   };
 
   const handleDownload = React.useCallback(() => {
@@ -155,6 +163,7 @@ function AppStreamCam() {
     setGameFinished(true);
     handleStopCaptureClick();
     screenFull.exit();
+    setActive(true);
   };
 
   const handleSendBuffer = (data) => {
@@ -162,12 +171,28 @@ function AppStreamCam() {
   };
 
   useEffect(() => {
-    if (gameFinished && !capturing && recordedChunks.length > 0)
+    if (
+      gameFinished &&
+      !capturing &&
+      recordedChunks.length > 0 &&
+      saved == 'idle'
+    ) {
       saveDataOnServer();
-  }, [gameFinished, capturing, recordedChunks]);
+      setSaved('saving');
+    }
+  }, [gameFinished, isActive, recordedChunks, capturing, saved]);
 
   return (
     <div className={gameStarted ? 'container-full' : 'container'}>
+      {isActive ? (
+        <LoadingOverlay
+          active={isActive}
+          spinner
+          text="Salvando video..."
+        ></LoadingOverlay>
+      ) : (
+        <div></div>
+      )}
       <Webcam
         ref={webcamRef}
         audio={false}
@@ -187,10 +212,10 @@ function AppStreamCam() {
           width: 640,
           height: 480,
         }}
-        onUserMediaError={()=> {
-          alert('Webcam precisa estar ligada, dê permissão antes de continuar')
+        onUserMediaError={() => {
+          alert('Webcam precisa estar ligada, dê permissão antes de continuar');
         }}
-        onUserMedia={()=> {
+        onUserMedia={() => {
           setCameraOn(true);
         }}
       />
@@ -211,14 +236,17 @@ function AppStreamCam() {
               flexDirection: 'column',
             }}
           >
-            {cameraOn ? 
-            <div></div>
-            :
-            <div>
-              <h3 style={{color: 'Red'}}> Sua câmera não está ligada, dê permissão antes de continuar</h3>
-            </div>
-            }
-            
+            {cameraOn ? (
+              <div></div>
+            ) : (
+              <div>
+                <h3 style={{ color: 'Red' }}>
+                  {' '}
+                  Sua câmera não está ligada, dê permissão antes de continuar
+                </h3>
+              </div>
+            )}
+
             <form
               style={{
                 position: 'absolute',

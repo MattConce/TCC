@@ -175,7 +175,7 @@ def main():
                     print('Video already exists')
 
                 # Converting video from webm to mp4
-                if not Path(f'{path}/uploads/{video_id}.mp4').is_file():
+                if not Path(f'{path}/uploads/raw/{video_id}.mp4').is_file():
                     print(f'Converting video {i} to mp4...')
                     subprocess.run(f'ffmpeg -i uploads/raw/{video_id}.webm uploads/raw/{video_id}.mp4',
                                    shell=True,

@@ -78,16 +78,22 @@ function AppStreamCam() {
       if (navigator.appVersion.indexOf('X11') !== -1) osType = 'UNIX OS';
       if (navigator.appVersion.indexOf('Linux') !== -1) osType = 'Linux OS';
       console.log('OS:', osType);
-      uploadFileHandler(blob, `video-${Date.now()}`).then((response) => {
-        saveTrainingData({
-          email: email,
-          video: response,
-          os: osType,
-          resolution: `${window.screen.width}x${window.screen.height}`,
-          gpu: gpu,
-          info: buffer,
+      uploadFileHandler(blob, `video-${Date.now()}`)
+        .then((response) => {
+          saveTrainingData({
+            email: email,
+            video: response,
+            os: osType,
+            resolution: `${window.screen.width}x${window.screen.height}`,
+            gpu: gpu,
+            info: buffer,
+          });
+        })
+        .catch((err) => {
+          setActive(false);
+          console.log(err);
+          alert('Ocorreu um erro!');
         });
-      });
     } else {
       console.log('error');
     }

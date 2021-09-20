@@ -51,7 +51,7 @@ router.post('/save', upload.single('video'), async (req, res) => {
 
 router.post(
   '/save/gdrive',
-  timeout('30s'),
+  timeout('60s'),
   upload.single('video'),
   async (req, res) => {
     const { video } = req.body;

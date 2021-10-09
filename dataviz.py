@@ -1,91 +1,174 @@
 from oauth2client.service_account import ServiceAccountCredentials
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from googleapiclient.discovery import build
+from pprint import pprint
 
 from pymongo import MongoClient
 from dotenv import dotenv_values
 from pathlib import Path
+import math
+from typing import List, Mapping, Optional, Tuple, Union
 
 import mediapipe as mp
 import subprocess
 import argparse
+import random
 import json
 import cv2
 import sys
 import io
 import os
+from mimetypes import MimeTypes
 
-def run_facemesh(video_name):
+LEFT_EYE = [55, 114, 117, 53]
+RIGHT_EYE = [285, 283, 346, 343]
+MOUTH = [216, 436, 422, 202]
+# NOSE = [231, 451, 426, 206]
+NOSE = [221, 441, 391, 165]
+
+def upload_images(service):
+    mime = MimeTypes()
+    path = Path(__file__).parent.absolute()
+    folder = f'{path}/uploads/cut'
+    files = sorted(os.listdir(folder))
+    files_len = len(files)
+    for i, filename in enumerate(files, 1):
+        # if i < 2008:
+        #     continue
+        print(f'Uploading image {filename} {i}/{files_len}')
+
+        filepath = os.path.join(folder, filename)
+        file_metadata = {
+            'name': filename,
+            'parents': ['1kiU9K_pJ3hHCRb56r-vRgUNvlB64Kp3O']
+        }
+
+        media = MediaFileUpload(filepath,
+                                mimetype='image/png')
+                                # resumable=True)
+
+        file = service.files().create(body=file_metadata,
+                                  media_body=media,
+                                  fields='id').execute()
+        print(f"File uploaded succes! id: {file.get('id')}")
+
+def _normalized_to_pixel_coordinates(
+    normalized_x: float, normalized_y: float, image_width: int,
+    image_height: int) -> Union[None, Tuple[int, int]]:
+  """Converts normalized value pair to pixel coordinates."""
+
+  # Checks if the float value is between 0 and 1.
+  def is_valid_normalized_value(value: float) -> bool:
+    return (value > 0 or math.isclose(0, value)) and (value < 1 or
+                                                      math.isclose(1, value))
+
+  if not (is_valid_normalized_value(normalized_x) and
+          is_valid_normalized_value(normalized_y)):
+    # TODO: Draw coordinates even if it's outside of the image bounds.
+    return None
+  x_px = min(math.floor(normalized_x * image_width), image_width - 1)
+  y_px = min(math.floor(normalized_y * image_height), image_height - 1)
+  return x_px, y_px
+
+
+def run_facemesh(dataset):
     path = Path(__file__).parent.absolute()
 
     mp_drawing = mp.solutions.drawing_utils
     mp_face_mesh = mp.solutions.face_mesh
 
     drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
-    # Load the video
-    cap = cv2.VideoCapture(f'{path}/uploads/raw/{video_name}.mp4')
-    # Get de codec code
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    # float `width`
-    width  = int(cap.get(3))
-    # float `height`
-    height = int(cap.get(4))
-    # FPS of the original video
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    # Prepere the out video
-    out = cv2.VideoWriter(f'{path}/uploads/facemesh/facemesh-{video_name}.mp4', fourcc, fps, (width, height), True)
-    print(f'Running face mesh for {video_name}...')
-
+    folder = f'{path}/uploads/cut'
     with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
-        while cap.isOpened():
-            success, image = cap.read()
-            if not success or image is None:
-                break
+        for filename in os.listdir(folder):
+            video_info = dataset[f'{filename}']
+
+            print(f'Running face mesh for {filename}...')
+
+            image = cv2.imread(os.path.join(folder, filename))
             image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
             results = face_mesh.process(image)
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
             if results.multi_face_landmarks:
-                for face_landmarks in results.multi_face_landmarks:
-                    mp_drawing.draw_landmarks(
-                        image=image,
-                        landmark_list=face_landmarks,
-                        connections=mp_face_mesh.FACE_CONNECTIONS,
-                        landmark_drawing_spec=drawing_spec,
-                        connection_drawing_spec=drawing_spec)
-            out.write(image)
-    print(f'Done running face mesh for {video_name}...')
-    cap.release()
-    out.release()
+                image_rows, image_cols, _ = image.shape
+                thickness = 1
+                color = (255, 0, 0)
+                landmarks_list = results.multi_face_landmarks[0].landmark
+
+                x1 = landmarks_list[LEFT_EYE[0]].x
+                y1 = landmarks_list[LEFT_EYE[0]].y
+                x2 = landmarks_list[LEFT_EYE[2]].x
+                y2 = landmarks_list[LEFT_EYE[2]].y
+
+                pt1 = _normalized_to_pixel_coordinates(x1, y1, image_cols, image_rows)
+                pt2 = _normalized_to_pixel_coordinates(x2, y2, image_cols, image_rows)
+                image = cv2.rectangle(image, pt1, pt2, color, thickness)
+                video_info['LEFT_EYE'] = (pt1, pt2)
+
+                x1 = landmarks_list[RIGHT_EYE[0]].x
+                y1 = landmarks_list[RIGHT_EYE[0]].y
+                x2 = landmarks_list[RIGHT_EYE[2]].x
+                y2 = landmarks_list[RIGHT_EYE[2]].y
+
+                pt1 = _normalized_to_pixel_coordinates(x1, y1, image_cols, image_rows)
+                pt2 = _normalized_to_pixel_coordinates(x2, y2, image_cols, image_rows)
+                image = cv2.rectangle(image, pt1, pt2, color, thickness)
+                video_info['RIGHT_EYE'] = (pt1, pt2)
+                x1 = landmarks_list[MOUTH[0]].x
+                y1 = landmarks_list[MOUTH[0]].y
+                x2 = landmarks_list[MOUTH[2]].x
+                y2 = landmarks_list[MOUTH[2]].y
+
+                pt1 = _normalized_to_pixel_coordinates(x1, y1, image_cols, image_rows)
+                pt2 = _normalized_to_pixel_coordinates(x2, y2, image_cols, image_rows)
+                image = cv2.rectangle(image, pt1, pt2, color, thickness)
+                video_info['MOUTH'] = (pt1, pt2)
+
+                x1 = landmarks_list[NOSE[0]].x
+                y1 = landmarks_list[NOSE[0]].y
+                x2 = landmarks_list[NOSE[2]].x
+                y2 = landmarks_list[NOSE[2]].y
+
+                pt1 = _normalized_to_pixel_coordinates(x1, y1, image_cols, image_rows)
+                pt2 = _normalized_to_pixel_coordinates(x2, y2, image_cols, image_rows)
+                image = cv2.rectangle(image, pt1, pt2, color, thickness)
+                video_info['NOSE'] = (pt1, pt2)
+
+            cv2.imwrite(f'{path}/uploads/facemesh/{filename}', image)
 
 
-def cut_selection_video(timestamps, video_name):
+def cut_selection_video(info, video_name, datasetjson):
     path = Path(__file__).parent.absolute()
+    # Open video capture
     cap = cv2.VideoCapture(f'{path}/uploads/raw/{video_name}.mp4')
-    # Get de codec code
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    # float `width`
-    width  = int(cap.get(3))
-    # float `height`
-    height = int(cap.get(4))
     # FPS of the original video
     fps = cap.get(cv2.CAP_PROP_FPS)
     # Prepere the out video
     index = 0
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    for start, stop in timestamps:
+    positions = info[0]
+    timestamps = info[1]
+    for i, time in enumerate(timestamps):
+        start, stop = time
         start_frame_count = fps * start
-        stop_frame_count  = fps * stop
-        out = cv2.VideoWriter(f'{path}/uploads/cut/cut-{video_name}-{start}-{stop}.mp4', fourcc, fps, (width, height), True)
+        stop_frame_count = fps * stop
+        target = positions[i]
+        count = 0
         while cap.isOpened():
             success, image = cap.read()
             index += 1
             if not success or index > stop_frame_count:
                 break
-            if start_frame_count <= index < stop_frame_count: 
-                out.write(image)
-        out.release()
+            if start_frame_count <= index < stop_frame_count:
+                continue
+            if count < 10 and random.random() < 0.8:
+                name = f'frame-{count}-{video_name}-{target[0]}-{target[1]}.png'
+                cv2.imwrite(f'{path}/uploads/cut/{name}', image)
+                datasetjson[name] = {'label': target}
+                count += 1
+        print(f'frames: {count}')
     cap.release()
 
 
@@ -96,6 +179,8 @@ def main():
     ap.add_argument('-g', '--gdrive', required=False, action='store_true', help = 'download images from gdrive')
     ap.add_argument('-f', '--facemesh', required=False, action='store_true',help = 'Apply facemesh model to the videos')
     ap.add_argument('-t', '--timestamp', required=False, action='store_true', help='Cutting the video into chunks according to timestamp')
+    ap.add_argument('-s', '--samples', required=False, help='Number of samples to apply the API function')
+    ap.add_argument('-u', '--upload', required=False, action='store_true', help = 'Upload images to gdrive')
  
     args = ap.parse_args()
 
@@ -132,6 +217,8 @@ def main():
     GDRIVE = args.gdrive
     FACEMESH = args.facemesh
     TIMESTAMP = args.timestamp
+    SAMPLES = int(args.samples) if args.samples is not None else float('inf')
+    UPLOAD = args.upload
 
     config = dotenv_values(".env")
     # Config of the mongoDB
@@ -142,17 +229,26 @@ def main():
     # Get the collection from the eye-tracker database
     collection = client[db_name]
     # Using googleapi to download videos from gdrive
-    if GDRIVE :
+    if GDRIVE:
         scope = ['https://www.googleapis.com/auth/drive']
         credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
         service = build('drive', 'v3', credentials=credentials)
         print('Connected to google drive api')
+
+    if UPLOAD:
+        scope = ['https://www.googleapis.com/auth/drive']
+        credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+        service = build('drive', 'v3', credentials=credentials)
+        print('Connected to google drive api')
+
     # Iterate over all document from the collection
-    videos = []
+    videos = {}
     print(f'Loading data from {MONGO} mongoDB database...')
-    list_positions = []
-    list_timestamp = []
+    # list_positions = []
+    # list_timestamp = []
     for i, document in enumerate(collection[collection_name].find(), 1):
+        if 'stream' not in document:
+            continue
         for stream in document['stream']:
             video_id = stream['video']
             video_info = stream['info']
@@ -161,7 +257,7 @@ def main():
             positions = []
             timestamp = []
 
-            if GDRIVE :
+            if GDRIVE:
                 # Download video from gdrive
                 if not Path(f'{path}/uploads/raw/{video_id}.webm').is_file():
                     print(f'Downloading video {i} from google drive...')
@@ -182,34 +278,45 @@ def main():
                                    stdout=subprocess.DEVNULL,
                                    stderr=subprocess.STDOUT)
 
-            videos.append(video_id)
+            videos[video_id] = []
             # Append info to list
+            res = stream['resolution'].split('x')
             for info in video_info:
-                x, y = info['x'], info['y']
+                x, y = round(info['x'] / float(res[0]), 3), round(info['y'] / float(res[1]), 3)
                 begin, end = info['timestampInit'], info['timestampEnd']
                 positions.append((x, y))
                 timestamp.append((begin, end))
 
-            list_positions.append(positions)
-            list_timestamp.append(timestamp)
+            videos[video_id].append(positions)
+            videos[video_id].append(timestamp)
 
     if GDRIVE:
         print('Files downloaded to uploads directory')
 
     if TIMESTAMP:
+        datasetjson = {}
         for i, video in enumerate(videos):
+            if i + 1 > SAMPLES:
+                break
             print(f'Cutting video {video}...')
-            cut_selection_video(list_timestamp[i], video)
+            cut_selection_video(videos[video], video, datasetjson)
+
+        with open("dataset.json", "w") as f:
+            print("Creating dataset json file...")
+            json.dump(datasetjson, f)
 
     if FACEMESH:
         # Apply the facemesh model
-        print('Running facemesh model...')
-        for video_id in videos:
-            print(f'video {video_id}')
-            if not Path(f'{path}/uploads/facemesh/facemesh-{video_id}.mp4').is_file():
-                run_facemesh(video_id)
-            else:
-                print('Facemesh already applied to the video')
+        with open("dataset.json", "r+", encoding='utf-8') as f:
+            data = json.load(f)
+            print('Running facemesh model...')
+            run_facemesh(data)
+            f.seek(0)
+            json.dump(data, f)
+            f.truncate()
+
+    if UPLOAD:
+        upload_images(service)
 
 
 if __name__ == '__main__':
